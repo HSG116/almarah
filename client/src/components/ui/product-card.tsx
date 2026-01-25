@@ -123,7 +123,10 @@ export function ProductCard({ product }: ProductCardProps) {
                     <img src="/images/currency-icon.png" className="h-5 w-auto" alt="ر.س" />
                     {activeProduct.price.toFixed(2)}
                   </span>
-                  <p className="text-[10px] text-muted-foreground">شامل ضريبة القيمة المضافة 15%</p>
+                  <span className="text-xs font-medium text-gray-500 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
+                    الحجم: {activeProduct.size} ({activeProduct.weight})
+                  </span>
+                  <p className="text-[10px] text-muted-foreground mt-1">شامل ضريبة القيمة المضافة 15%</p>
                 </div>
                 
                 {/* Product Navigation Below Details */}
