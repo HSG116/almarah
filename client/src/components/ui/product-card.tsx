@@ -66,8 +66,9 @@ export function ProductCard({ product }: ProductCardProps) {
                 <h3 className="font-bold text-xl text-gray-800 mb-1">{product.name}</h3>
                 <p className="text-sm text-muted-foreground mb-2">يبدأ السعر من</p>
                 <div className="flex flex-col items-center">
-                  <span className="text-2xl font-black text-gray-900">
-                    {product.price.toFixed(2)} <span className="text-lg">ر.س</span>
+                  <span className="text-2xl font-black text-gray-900 flex items-center gap-1">
+                    {product.price.toFixed(2)} 
+                    <img src="/images/currency-icon.png" className="h-6 w-auto" alt="ر.س" />
                   </span>
                   <p className="text-[10px] text-muted-foreground mt-1">شامل ضريبة القيمة المضافة 15%</p>
                 </div>
@@ -86,7 +87,10 @@ export function ProductCard({ product }: ProductCardProps) {
             <div className="text-center mb-6">
               <h3 className="text-2xl font-bold text-gray-800">{product.name}</h3>
               <p className="text-sm text-muted-foreground mt-1">يبدأ السعر من</p>
-              <p className="text-2xl font-black text-gray-900 mt-1">{product.price.toFixed(2)} <span className="text-lg">ر.س</span></p>
+              <div className="flex items-center justify-center gap-1 mt-1">
+                <p className="text-2xl font-black text-gray-900">{product.price.toFixed(2)}</p>
+                <img src="/images/currency-icon.png" className="h-6 w-auto" alt="ر.س" />
+              </div>
               <p className="text-[10px] text-muted-foreground italic">شامل ضريبة القيمة المضافة 15%</p>
             </div>
 
@@ -112,8 +116,9 @@ export function ProductCard({ product }: ProductCardProps) {
                   <Minus className="h-5 w-5" />
                 </Button>
               </div>
-              <div className="text-left">
-                <p className="text-2xl font-black text-gray-900">{ (product.price * quantity).toFixed(2) } <span className="text-lg">ر.س</span></p>
+              <div className="text-left flex items-center gap-1">
+                <p className="text-2xl font-black text-gray-900">{ (product.price * quantity).toFixed(2) }</p>
+                <img src="/images/currency-icon.png" className="h-6 w-auto" alt="ر.س" />
               </div>
             </div>
 
