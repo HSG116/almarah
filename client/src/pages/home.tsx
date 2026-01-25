@@ -170,30 +170,6 @@ export default function Home() {
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
-        
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-primary/10 flex flex-col items-center text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 text-primary">
-              <ShieldCheck className="w-8 h-8" />
-            </div>
-            <h4 className="text-xl font-bold mb-2">جودة مضمونة</h4>
-            <p className="text-sm text-muted-foreground">جميع ذبائحنا تحت إشراف طبي وبيطري كامل من المسلخ المعتمد</p>
-          </div>
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-primary/10 flex flex-col items-center text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 text-primary">
-              <Truck className="w-8 h-8" />
-            </div>
-            <h4 className="text-xl font-bold mb-2">توصيل مبرد</h4>
-            <p className="text-sm text-muted-foreground">نصلك بسيارات مجهزة بأحدث تقنيات التبريد للحفاظ على الطزاجة</p>
-          </div>
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-primary/10 flex flex-col items-center text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 text-primary">
-              <Clock className="w-8 h-8" />
-            </div>
-            <h4 className="text-xl font-bold mb-2">سرعة الإنجاز</h4>
-            <p className="text-sm text-muted-foreground">نلتزم بمواعيد دقيقة لتسليم طلبك في الوقت المحدد بكل احترافية</p>
-          </div>
-        </div>
       </section>
 
       {/* CTA Section */}
