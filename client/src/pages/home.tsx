@@ -153,7 +153,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Products */}
+      {/* Featured Products (Our Exclusive Offers) */}
       <section className="py-16 container mx-auto px-4 bg-secondary/10 rounded-[3rem] my-10 border-2 border-primary/5">
         <div className="flex flex-col md:flex-row justify-between items-center mb-10 text-center md:text-right">
           <div>
@@ -165,10 +165,20 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+        <div className="space-y-12">
+          {/* Livestock Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {products.filter(p => p.category === 'lamb' && p.isFeatured).slice(0, 2).map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+
+          {/* Vegetables Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {products.filter(p => p.category === 'veggies').slice(0, 2).map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
         </div>
       </section>
 
