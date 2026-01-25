@@ -86,8 +86,8 @@ export function ProductCard({ product }: ProductCardProps) {
                 <h3 className="font-bold text-lg text-gray-800 mb-2 group-hover:text-green-700 transition-colors">{product.name}</h3>
                 <div className="flex flex-col items-center gap-1">
                   <span className="text-2xl font-black text-gray-900 flex items-center gap-1">
-                    {product.price.toFixed(2)} 
                     <img src="/images/currency-icon.png" className="h-5 w-auto" alt="ر.س" />
+                    {product.price.toFixed(2)}
                   </span>
                   <p className="text-[10px] text-muted-foreground">شامل ضريبة القيمة المضافة 15%</p>
                 </div>
