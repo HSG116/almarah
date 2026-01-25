@@ -37,6 +37,13 @@ export function ProductCard({ product }: ProductCardProps) {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [selectedCutting, setSelectedCutting] = useState("fridge");
   const [selectedPackaging, setSelectedPackaging] = useState("plates");
+  const [openSections, setOpenSections] = useState<string[]>(["cutting", "packaging"]);
+
+  const toggleSection = (id: string) => {
+    setOpenSections(prev => 
+      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
+    );
+  };
   
   const { toast } = useToast();
 
@@ -133,45 +140,55 @@ export function ProductCard({ product }: ProductCardProps) {
 
             <div className="space-y-4 mb-8">
               <div className="border rounded-2xl overflow-hidden">
-                <div className="bg-gray-50 p-4 flex justify-between items-center border-b">
-                  <span className="font-bold text-gray-700">أنواع التقطيع</span>
-                  <ChevronDown className="h-5 w-5 text-gray-400" />
-                </div>
-                <div className="p-4">
-                  <RadioGroup 
-                    value={selectedCutting} 
-                    onValueChange={setSelectedCutting} 
-                    className="flex flex-wrap gap-4 justify-center"
-                  >
-                    {CUTTING_METHODS.map((method) => (
-                      <div key={method.id} className="flex items-center gap-2">
-                        <RadioGroupItem value={method.id} id={`cut-${method.id}`} className="border-gray-300 text-green-700" />
-                        <Label htmlFor={`cut-${method.id}`} className="font-bold text-gray-700 cursor-pointer">{method.label}</Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
+                <button 
+                  onClick={() => toggleSection("cutting")}
+                  className="w-full bg-gray-50 p-4 flex justify-between items-center border-b hover:bg-gray-100 transition-colors"
+                >
+                  <span className="font-bold text-gray-700">أنواع التتقطيع</span>
+                  <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${openSections.includes("cutting") ? "rotate-180" : ""}`} />
+                </button>
+                {openSections.includes("cutting") && (
+                  <div className="p-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <RadioGroup 
+                      value={selectedCutting} 
+                      onValueChange={setSelectedCutting} 
+                      className="flex flex-wrap gap-4 justify-center"
+                    >
+                      {CUTTING_METHODS.map((method) => (
+                        <div key={method.id} className="flex items-center gap-2">
+                          <RadioGroupItem value={method.id} id={`cut-${method.id}`} className="border-gray-300 text-green-700" />
+                          <Label htmlFor={`cut-${method.id}`} className="font-bold text-gray-700 cursor-pointer">{method.label}</Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                )}
               </div>
 
               <div className="border rounded-2xl overflow-hidden">
-                <div className="bg-gray-50 p-4 flex justify-between items-center border-b">
+                <button 
+                  onClick={() => toggleSection("packaging")}
+                  className="w-full bg-gray-50 p-4 flex justify-between items-center border-b hover:bg-gray-100 transition-colors"
+                >
                   <span className="font-bold text-gray-700">نوع التغليف</span>
-                  <ChevronDown className="h-5 w-5 text-gray-400" />
-                </div>
-                <div className="p-4">
-                  <RadioGroup 
-                    value={selectedPackaging} 
-                    onValueChange={setSelectedPackaging} 
-                    className="flex flex-wrap gap-4 justify-center"
-                  >
-                    {PACKAGING_METHODS.map((method) => (
-                      <div key={method.id} className="flex items-center gap-2">
-                        <RadioGroupItem value={method.id} id={`pack-${method.id}`} className="border-gray-300 text-green-700" />
-                        <Label htmlFor={`pack-${method.id}`} className="font-bold text-gray-700 cursor-pointer">{method.label}</Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
+                  <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${openSections.includes("packaging") ? "rotate-180" : ""}`} />
+                </button>
+                {openSections.includes("packaging") && (
+                  <div className="p-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <RadioGroup 
+                      value={selectedPackaging} 
+                      onValueChange={setSelectedPackaging} 
+                      className="flex flex-wrap gap-4 justify-center"
+                    >
+                      {PACKAGING_METHODS.map((method) => (
+                        <div key={method.id} className="flex items-center gap-2">
+                          <RadioGroupItem value={method.id} id={`pack-${method.id}`} className="border-gray-300 text-green-700" />
+                          <Label htmlFor={`pack-${method.id}`} className="font-bold text-gray-700 cursor-pointer">{method.label}</Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                )}
               </div>
             </div>
 
