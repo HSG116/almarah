@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ProductCardProps {
   product: typeof products[0];
@@ -37,7 +38,8 @@ export function ProductCard({ product }: ProductCardProps) {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [selectedCutting, setSelectedCutting] = useState("fridge");
   const [selectedPackaging, setSelectedPackaging] = useState("plates");
-  const [openSections, setOpenSections] = useState<string[]>(["cutting", "packaging"]);
+  const [note, setNote] = useState("");
+  const [openSections, setOpenSections] = useState<string[]>(["cutting", "packaging", "notes"]);
 
   const toggleSection = (id: string) => {
     setOpenSections(prev => 
@@ -187,6 +189,26 @@ export function ProductCard({ product }: ProductCardProps) {
                         </div>
                       ))}
                     </RadioGroup>
+                  </div>
+                )}
+              </div>
+
+              <div className="border rounded-2xl overflow-hidden">
+                <button 
+                  onClick={() => toggleSection("notes")}
+                  className="w-full bg-gray-50 p-4 flex justify-between items-center border-b hover:bg-gray-100 transition-colors"
+                >
+                  <span className="font-bold text-gray-700">ملاحظات إضافية</span>
+                  <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${openSections.includes("notes") ? "rotate-180" : ""}`} />
+                </button>
+                {openSections.includes("notes") && (
+                  <div className="p-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <Textarea 
+                      placeholder="اكتب أي ملاحظات إضافية هنا (مثلاً: بدون رأس، زيادة شحم...)"
+                      className="min-h-[100px] rounded-xl border-gray-200 focus:border-green-700 resize-none"
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                    />
                   </div>
                 )}
               </div>
