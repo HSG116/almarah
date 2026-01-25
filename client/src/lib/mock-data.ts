@@ -1,9 +1,9 @@
 export const categories = [
   { id: 'all', name: 'الكل', icon: '🥩' },
-  { id: 'lamb', name: 'الذبائح البلدية', icon: '🐑', image: '/images/naimi.jpg' },
-  { id: 'kilo', name: 'لحم بالكيلو', icon: '⚖️', image: '/images/meat-by-kilo.jpg' },
-  { id: 'veggies', name: 'خضروات وفواكه', icon: '🍎', image: '/images/veggies.jpg' },
-  { id: 'kashta', name: 'كشتة ولحم', icon: '⛺', image: '/images/kashta.jpg' },
+  { id: 'lamb', name: 'الذبائح البلدية', icon: '🐑', image: '/images/naimi-live.jpg' },
+  { id: 'kilo', name: 'لحم بالكيلو', icon: '⚖️', image: '/images/meat-cuts.jpg' },
+  { id: 'veggies', name: 'خضروات وفواكه', icon: '🍎', image: '/images/fresh-produce.jpg' },
+  { id: 'kashta', name: 'كشتة ولحم', icon: '⛺', image: '/images/bbq-prep.jpg' },
 ];
 
 export const products = [
@@ -13,7 +13,7 @@ export const products = [
     category: "lamb",
     price: 1850,
     unit: "ذبيحة",
-    image: "/images/naimi.jpg",
+    image: "/images/naimi-live.jpg",
     description: "نعيمي بلدي من مزارعنا، تربية خاصة، ذبح يومي تحت إشراف طبي. يشمل التقطيع والتغليف حسب رغبتك.",
     isFeatured: true,
   },
@@ -23,7 +23,7 @@ export const products = [
     category: "kashta",
     price: 450,
     unit: "بوكس",
-    image: "/images/kashta.jpg",
+    image: "/images/bbq-prep.jpg",
     description: "كل ما تحتاجه لرحلتك: 3 كيلو لحم مشكل، خضروات طازجة، عصائر باردة، وفحم. جاهز للانطلاق!",
     isFeatured: true,
   },
@@ -33,7 +33,7 @@ export const products = [
     category: "lamb",
     price: 950,
     unit: "بكس",
-    image: "/images/naimi-box.jpg",
+    image: "/images/delivery-box.jpg",
     description: "نصف ذبيحة نعيمي مع بوكس خضروات مشكلة، بهارات الملحمة الخاصة، وصوصات التتبيل.",
     isFeatured: true,
   },
@@ -43,7 +43,7 @@ export const products = [
     category: "kilo",
     price: 95,
     unit: "كجم",
-    image: "/images/meat-by-kilo.jpg",
+    image: "/images/meat-cuts.jpg",
     description: "ريش نعيمي طرية جداً، دهن خفيف، مثالية للشوي السريع.",
     isFeatured: true,
   },
@@ -53,7 +53,7 @@ export const products = [
     category: "kilo",
     price: 65,
     unit: "كجم",
-    image: "/images/meat-by-kilo.jpg",
+    image: "/images/meat-cuts.jpg",
     description: "لحم حاشي صغير السن، وردي اللون، سريع الاستواء ومثالي للمقلقل.",
     isFeatured: false,
   },
@@ -63,7 +63,7 @@ export const products = [
     category: "veggies",
     price: 85,
     unit: "سلة",
-    image: "/images/veggies.jpg",
+    image: "/images/fresh-produce.jpg",
     description: "تشكيلة مختارة من أجود الفواكه الطازجة (تفاح، برتقال، موز، عنب) حسب الموسم.",
     isFeatured: false,
   },
@@ -73,10 +73,10 @@ export const products = [
     category: "veggies",
     price: 55,
     unit: "صندوق",
-    image: "/images/veggies.jpg",
+    image: "/images/fresh-produce.jpg",
     description: "خضروات أساسية طازجة: طماطم، خيار، كوسة، باذنجان، فلفل بارد. قطاف اليوم.",
     isFeatured: false,
   },
 ];
 
-export const heroImage = "/images/naimi.jpg";
+export const heroImage = "/images/naimi-live.jpg";
