@@ -70,25 +70,26 @@ export function ProductCard({ product }: ProductCardProps) {
               <img 
                 src={product.image} 
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
-              {product.discount && (
-                <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full">
-                  خصم {product.discount}%
+              {product.badge && (
+                <div className={`absolute top-4 left-4 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg z-20 ${
+                  product.badge === 'وفر المال' ? 'bg-orange-500' : 'bg-green-600'
+                }`}>
+                  {product.badge}
                 </div>
               )}
             </div>
             
-            <CardContent className="p-0 -mt-6 relative z-10">
-              <div className="bg-white rounded-t-[2rem] p-6 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] text-center">
-                <h3 className="font-bold text-xl text-gray-800 mb-1">{product.name}</h3>
-                <p className="text-sm text-muted-foreground mb-2">يبدأ السعر من</p>
-                <div className="flex flex-col items-center">
+            <CardContent className="p-0 -mt-8 relative z-10">
+              <div className="bg-white rounded-t-[2.5rem] p-6 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] text-center border-x border-t border-gray-50">
+                <h3 className="font-bold text-lg text-gray-800 mb-2 group-hover:text-green-700 transition-colors">{product.name}</h3>
+                <div className="flex flex-col items-center gap-1">
                   <span className="text-2xl font-black text-gray-900 flex items-center gap-1">
                     {product.price.toFixed(2)} 
-                    <img src="/images/currency-icon.png" className="h-6 w-auto" alt="ر.س" />
+                    <img src="/images/currency-icon.png" className="h-5 w-auto" alt="ر.س" />
                   </span>
-                  <p className="text-[10px] text-muted-foreground mt-1">شامل ضريبة القيمة المضافة 15%</p>
+                  <p className="text-[10px] text-muted-foreground">شامل ضريبة القيمة المضافة 15%</p>
                 </div>
               </div>
             </CardContent>
@@ -113,7 +114,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
 
             <p className="text-sm text-center text-gray-500 mb-8 px-4 leading-relaxed">
-              أجود أنواع النعيمي (16 - 18 كيلو)، يذبح ويحضر في معامل طازج حسب طلبك ليصلك طازج
+              {product.description || "أجود أنواع اللحوم البلدية المختارة بعناية، تذبح وتحضر طازجة يومياً حسب طلبك لتصلك بأفضل جودة."}
             </p>
 
             <div className="flex items-center justify-between mb-8 px-2">
