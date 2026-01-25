@@ -77,8 +77,8 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </DialogTrigger>
 
-        <DialogContent className="sm:max-w-[400px] rounded-[2.5rem] p-0 overflow-hidden border-none" dir="rtl">
-          <div className="relative h-48">
+        <DialogContent className="sm:max-w-[400px] rounded-[2.5rem] p-0 overflow-y-auto max-h-[90vh] border-none no-scrollbar" dir="rtl">
+          <div className="relative h-48 shrink-0">
             <img src={product.image} className="w-full h-full object-cover" alt="" />
             <div className="absolute inset-0 bg-black/20" />
           </div>
