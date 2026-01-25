@@ -1,6 +1,6 @@
 export const categories = [
   { id: 'all', name: 'الكل', icon: '🥩' },
-  { id: 'lamb', name: 'الذبائح البلدية', icon: '🐑', image: '/images/naimi-live.jpg' },
+  { id: 'lamb', name: 'الذبائح البلدية', icon: '🐑', image: '/images/naimi-realistic.png' },
   { id: 'kilo', name: 'لحم بالكيلو', icon: '⚖️', image: '/images/meat-cuts.jpg' },
   { id: 'veggies', name: 'خضروات وفواكه', icon: '🍎', image: '/images/fresh-produce.jpg' },
   { id: 'kashta', name: 'كشتة ولحم', icon: '⛺', image: '/images/bbq-prep.jpg' },
@@ -13,7 +13,7 @@ export const products = [
     category: "lamb",
     price: 1850,
     unit: "ذبيحة",
-    image: "/images/naimi-live.jpg",
+    image: "/images/naimi-realistic.png",
     description: "نعيمي بلدي من مزارعنا، تربية خاصة، ذبح يومي تحت إشراف طبي. يشمل التقطيع والتغليف حسب رغبتك.",
     isFeatured: true,
   },
@@ -79,4 +79,4 @@ export const products = [
   },
 ];
 
-export const heroImage = "/images/naimi-live.jpg";
+export const heroImage = "/images/naimi-realistic.png";
