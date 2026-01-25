@@ -73,7 +73,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
               {product.badge && (
-                <div className={`absolute top-4 left-4 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg z-20 ${
+                <div className={`absolute top-4 right-4 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg z-20 ${
                   product.badge === 'وفر المال' ? 'bg-orange-500' : 'bg-green-600'
                 }`}>
                   {product.badge}
