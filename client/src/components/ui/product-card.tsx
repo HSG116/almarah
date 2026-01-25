@@ -22,12 +22,21 @@ const CUTTING_METHODS = [
   { id: "fridge", label: "ثلاجة" },
   { id: "large", label: "تفصيل كبير" },
   { id: "small", label: "تفصيل صغير" },
+  { id: "quarters", label: "أرباع" },
+  { id: "half", label: "أنصاف" },
+];
+
+const PACKAGING_METHODS = [
+  { id: "plates", label: "أطباق" },
+  { id: "bags", label: "أكياس" },
+  { id: "vacuum", label: "سحب هواء" },
 ];
 
 export function ProductCard({ product }: ProductCardProps) {
   const [quantity, setQuantity] = useState(1);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [selectedCutting, setSelectedCutting] = useState("fridge");
+  const [selectedPackaging, setSelectedPackaging] = useState("plates");
   
   const { toast } = useToast();
 
@@ -132,12 +141,33 @@ export function ProductCard({ product }: ProductCardProps) {
                   <RadioGroup 
                     value={selectedCutting} 
                     onValueChange={setSelectedCutting} 
-                    className="flex flex-wrap gap-6 justify-center"
+                    className="flex flex-wrap gap-4 justify-center"
                   >
                     {CUTTING_METHODS.map((method) => (
                       <div key={method.id} className="flex items-center gap-2">
                         <RadioGroupItem value={method.id} id={`cut-${method.id}`} className="border-gray-300 text-green-700" />
                         <Label htmlFor={`cut-${method.id}`} className="font-bold text-gray-700 cursor-pointer">{method.label}</Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+              </div>
+
+              <div className="border rounded-2xl overflow-hidden">
+                <div className="bg-gray-50 p-4 flex justify-between items-center border-b">
+                  <span className="font-bold text-gray-700">نوع التغليف</span>
+                  <ChevronDown className="h-5 w-5 text-gray-400" />
+                </div>
+                <div className="p-4">
+                  <RadioGroup 
+                    value={selectedPackaging} 
+                    onValueChange={setSelectedPackaging} 
+                    className="flex flex-wrap gap-4 justify-center"
+                  >
+                    {PACKAGING_METHODS.map((method) => (
+                      <div key={method.id} className="flex items-center gap-2">
+                        <RadioGroupItem value={method.id} id={`pack-${method.id}`} className="border-gray-300 text-green-700" />
+                        <Label htmlFor={`pack-${method.id}`} className="font-bold text-gray-700 cursor-pointer">{method.label}</Label>
                       </div>
                     ))}
                   </RadioGroup>
