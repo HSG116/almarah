@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار جلب الطلبات</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .order-card {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-right: 4px solid #007bff;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .step {
+            margin: 20px 0;
+            padding: 15px;
+            background: #e7f3ff;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>🔍 اختبار جلب الطلبات من Supabase</h1>
+        <p>هذه الصفحة ستساعدك في معرفة سبب عدم ظهور الطلبات</p>
+
+        <div class="step">
+            <h3>الخطوة 1️⃣: أدخل ID المستخدم الخاص بك</h3>
+            <input type="text" id="userId" placeholder="مثال: 123e4567-e89b-12d3-a456-426614174000">
+            <p style="font-size: 14px; color: #666;">
+                💡 لمعرفة ID الخاص بك: افتح Console (F12) في الموقع واكتب: <code>supabase.auth.getUser()</code>
+            </p>
+        </div>
+
+        <div class="step">
+            <h3>الخطوة 2️⃣: اختبر الاتصال</h3>
+            <button onclick="testConnection()">اختبر الاتصال بـ Supabase</button>
+            <button onclick="testOrders()">جلب الطلبات</button>
+            <button onclick="testPolicies()">اختبر سياسات RLS</button>
+            <button onclick="clearResults()">مسح النتائج</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const supabaseUrl = "https://rfwnclhnxhatnybxjlhm.supabase.co";
+        const supabaseKey = "sb_publishable_PNypnTlPQNQSmDjyL0DUsg_NiaV6Pmp";
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function testConnection() {
+            clearResults();
+            log('⏳ جاري الاتصال بـ Supabase...', 'info');
+
+            try {
+                const { data, error } = await supabase.from('users').select('count');
+                if (error) throw error;
+                log('✅ الاتصال بـ Supabase يعمل بنجاح!', 'success');
+            } catch (error) {
+                log(`❌ خطأ في الاتصال: ${error.message}`, 'error');
+                log('<pre>' + JSON.stringify(error, null, 2) + '</pre>', 'error');
+            }
+        }
+
+        async function testOrders() {
+            const userId = document.getElementById('userId').value.trim();
+            if (!userId) {
+                log('⚠️ يرجى إدخال User ID أولاً!', 'error');
+                return;
+            }
+
+            clearResults();
+            log(`⏳ جاري جلب الطلبات للمستخدم: ${userId}...`, 'info');
+
+            try {
+                const { data, error } = await supabase
+                    .from('orders')
+                    .select(`
+                        *,
+                        order_items (
+                            *
+                        )
+                    `)
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    log(`✅ تم العثور على ${data.length} طلب!`, 'success');
+                    data.forEach((order, index) => {
+                        log(`
+                            <div class="order-card">
+                                <strong>طلب #${order.id}</strong><br>
+                                <small>التاريخ: ${new Date(order.created_at).toLocaleString('ar-SA')}</small><br>
+                                الإجمالي: ${order.total} ر.س<br>
+                                الحالة: ${order.status}<br>
+                                العنوان: ${order.address}<br>
+                                عدد المنتجات: ${order.order_items?.length || 0}
+                            </div>
+                        `, 'success');
+                    });
+                    log('<pre>' + JSON.stringify(data, null, 2) + '</pre>', 'info');
+                } else {
+                    log('⚠️ لا توجد طلبات لهذا المستخدم', 'info');
+                    log('💡 تأكد من:\n1. أن User ID صحيح\n2. أن هناك طلبات في قاعدة البيانات\n3. أن سياسات RLS مطبقة صحيحاً', 'info');
+                }
+            } catch (error) {
+                log(`❌ خطأ في جلب الطلبات: ${error.message}`, 'error');
+                log('<pre>' + JSON.stringify(error, null, 2) + '</pre>', 'error');
+
+                if (error.message.includes('infinite recursion')) {
+                    log(`
+                        <h3>🚨 المشكلة: Infinite Recursion في RLS Policies</h3>
+                        <p><strong>الحل:</strong></p>
+                        <ol>
+                            <li>افتح Supabase Dashboard</li>
+                            <li>اذهب إلى SQL Editor</li>
+                            <li>افتح ملف <code>FIX_INFINITE_RECURSION.sql</code></li>
+                            <li>انسخ المحتوى كله والصقه</li>
+                            <li>اضغط Run ▶️</li>
+                        </ol>
+                    `, 'error');
+                }
+            }
+        }
+
+        async function testPolicies() {
+            clearResults();
+            log('⏳ جاري اختبار سياسات RLS...', 'info');
+
+            try {
+                // Test users table
+                const { error: usersError } = await supabase.from('users').select('id').limit(1);
+                if (usersError) throw new Error(`Users table: ${usersError.message}`);
+                log('✅ جدول users: السياسات تعمل', 'success');
+
+                // Test orders table
+                const { error: ordersError } = await supabase.from('orders').select('id').limit(1);
+                if (ordersError) throw new Error(`Orders table: ${ordersError.message}`);
+                log('✅ جدول orders: السياسات تعمل', 'success');
+
+                // Test order_items table
+                const { error: itemsError } = await supabase.from('order_items').select('id').limit(1);
+                if (itemsError) throw new Error(`Order items table: ${itemsError.message}`);
+                log('✅ جدول order_items: السياسات تعمل', 'success');
+
+                log('🎉 جميع السياسات تعمل بشكل صحيح!', 'success');
+
+            } catch (error) {
+                log(`❌ خطأ في السياسات: ${error.message}`, 'error');
+                log(`
+                    <h3>⚠️ يبدو أن هناك مشكلة في سياسات RLS</h3>
+                    <p>يجب تطبيق ملف <code>FIX_INFINITE_RECURSION.sql</code> في Supabase Dashboard</p>
+                `, 'error');
+            }
+        }
+
+        // Auto test on load
+        window.addEventListener('load', () => {
+            log('📄 مرحباً! استخدم الأزرار أعلاه لاختبار الاتصال بقاعدة البيانات', 'info');
+            testConnection();
+        });
+    </script>
+</body>
+
+</html>

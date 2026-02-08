@@ -1,7 +1,9 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { setupAuth } from "./auth";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import path from "path";
 
 const app = express();
 const httpServer = createServer(app);
@@ -21,6 +23,7 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: false }));
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -60,7 +63,14 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  setupAuth(app);
+  console.log("🛠️ Auth setup complete");
   await registerRoutes(httpServer, app);
+  console.log("🛠️ Routes registered");
+
+  // Start Telegram Bot
+  const { setupTelegramBot } = await import("./telegram");
+  setupTelegramBot();
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -94,7 +104,7 @@ app.use((req, res, next) => {
     {
       port,
       host: "0.0.0.0",
-      reusePort: true,
+      reusePort: false,
     },
     () => {
       log(`serving on port ${port}`);

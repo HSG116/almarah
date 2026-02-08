@@ -2,14 +2,120 @@ import { Navbar } from "@/components/layout/Navbar";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/ui/product-card";
-import { categories, products, heroImage } from "@/lib/mock-data";
 import { ArrowLeft, Clock, Truck, ShieldCheck, ChevronRight, ChevronLeft } from "lucide-react";
 import { Link } from "wouter";
 import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { type Product, type Category } from "@shared/schema";
+import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/lib/supabase";
 
 export default function Home() {
+  const { data: siteSettings = [] } = useQuery({
+    queryKey: ["site_settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('site_settings').select('*');
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  const settingsMap = siteSettings.reduce((acc: any, curr: any) => {
+    try {
+      acc[curr.key] = JSON.parse(curr.value);
+    } catch (e) {
+      acc[curr.key] = curr.value;
+    }
+    return acc;
+  }, {});
+
+  const isStoreClosed = settingsMap.store_status === 'closed';
+
+  const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('is_active', true);
+      if (error) throw error;
+      return (data || [])
+        .filter((p: any) => p.name !== 'حاشي لباني (بالكيلو)' && p.name !== 'عجل بلدي رضيع (بالكيلو)')
+        .map((p: any) => {
+          // تصحيح مؤقت: تعيين موضع الصورة للمنتجات المحددة
+          let imagePos = p.image_object_position;
+          if (p.name === 'خروف حري كامل' || p.name === 'تيس بلدي محايل') {
+            imagePos = 'object-top';
+          }
+
+          return {
+            ...p,
+            categoryId: p.category_id,
+            isFeatured: p.is_featured,
+            isActive: p.is_active,
+            hasCutting: p.has_cutting,
+            hasPackaging: p.has_packaging,
+            hasExtras: p.has_extras,
+            imageObjectPosition: imagePos,
+            stockQuantity: p.stock_quantity,
+            isOutOfStock: p.is_out_of_stock
+          };
+        }).concat([
+          // Inject missing products if they don't exist yet
+          !data.find((p: any) => p.name === 'خروف نعيمي متوسط') ? {
+            id: 998, // Temp ID
+            name: 'خروف نعيمي متوسط',
+            price: 1200.00,
+            unit: 'ذبيحة',
+            image: '/images/lamb/خروف نعيمي متوسط.png',
+            description: 'خروف نعيمي بلدي حجم متوسط، مثالي للعائلة الصغيرة.',
+            categoryId: 'lamb',
+            isFeatured: false,
+            badge: null,
+            size: 'متوسط',
+            weight: '7-9 كجم',
+            imageObjectPosition: null
+          } : [],
+          !data.find((p: any) => p.name === 'نعيمي لباني') ? {
+            id: 999, // Temp ID
+            name: 'نعيمي لباني',
+            price: 900.00,
+            unit: 'ذبيحة',
+            image: '/images/lamb/نعيمي لباني.png',
+            description: 'خروف نعيمي صغير (لباني)، لحم طري جداً ولذيذ.',
+            categoryId: 'lamb',
+            isFeatured: true,
+            badge: 'لباني',
+            size: 'صغير',
+            weight: '5-7 كجم',
+            imageObjectPosition: null
+          } : []
+        ].flat()) as Product[];
+    }
+  });
+
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery<Category[]>({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('categories').select('*');
+      if (error) throw error;
+      // Mock default categories if DB is empty to prevent empty home page
+      if (!data || data.length === 0) {
+        return [
+          { id: 'lamb', name: 'نعيمي', icon: '🐑', image: '/assets/category-lamb.png' },
+          { id: 'beef', name: 'عجل', icon: '🐄', image: '/assets/category-beef.png' },
+          { id: 'chicken', name: 'دواجن', icon: '🐔', image: '/assets/category-chicken.png' },
+          { id: 'minced', name: 'مفروم', icon: '🥩', image: '/assets/category-minced.png' },
+        ] as Category[];
+      }
+      return data as Category[];
+    }
+  });
+
   const featuredProducts = products.filter(p => p.isFeatured);
+  const heroImage = "/images/lamb/حري.png";
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -29,7 +135,7 @@ export default function Home() {
       checkScroll();
       return () => el.removeEventListener('scroll', checkScroll);
     }
-  }, []);
+  }, [categories]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -41,8 +147,24 @@ export default function Home() {
     }
   };
 
+  if (productsLoading || categoriesLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="space-y-4 w-full px-10">
+          <Skeleton className="h-64 w-full rounded-3xl" />
+          <div className="grid grid-cols-4 gap-4">
+            <Skeleton className="h-32 rounded-2xl" />
+            <Skeleton className="h-32 rounded-2xl" />
+            <Skeleton className="h-32 rounded-2xl" />
+            <Skeleton className="h-32 rounded-2xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <motion.div 
+    <motion.div
       className="min-h-screen bg-background pb-20 md:pb-0"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -50,20 +172,27 @@ export default function Home() {
       transition={{ duration: 0.3 }}
     >
       <Navbar />
-      
+
+      {isStoreClosed && (
+        <div className="bg-rose-600 text-white py-4 px-6 text-center font-black animate-pulse z-[100] sticky top-0 shadow-lg flex items-center justify-center gap-3">
+          <Clock className="w-6 h-6 animate-spin-slow" />
+          <span className="text-lg">عذراً، المحل مغلق حالياً. لا يمكن استقبال طلبات جديدة في الوقت الحالي.</span>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="relative h-[80vh] md:h-[600px] w-full overflow-hidden">
         <div className="absolute inset-0 bg-black/40 z-10" />
-        <img 
-          src={heroImage} 
-          alt="Premium Meat" 
+        <img
+          src={heroImage}
+          alt="Premium Meat"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        
+
         <div className="relative z-20 container mx-auto px-4 h-full flex flex-col justify-center items-start text-white rtl-grid">
           <div className="max-w-2xl animate-in slide-in-from-right duration-700">
             <h1 className="text-5xl md:text-7xl font-bold mb-6 font-heading leading-tight">
-              طعم الفخامة <br/>
+              طعم الفخامة <br />
               <span className="text-secondary">في كل قطعة</span>
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-gray-200 font-light max-w-lg">
@@ -82,7 +211,7 @@ export default function Home() {
       {/* Features Section */}
       <section className="py-10 md:py-16 bg-white container mx-auto px-4 -mt-12 relative z-30 rounded-t-[2.5rem] md:mt-0 md:rounded-none shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.1)]">
         <div className="relative group/nav">
-          <div 
+          <div
             ref={scrollRef}
             className="flex md:grid md:grid-cols-3 gap-5 md:gap-8 overflow-x-auto no-scrollbar pb-6 md:pb-0 snap-x snap-mandatory"
           >
@@ -104,9 +233,9 @@ export default function Home() {
           {/* Navigation Arrows for Mobile */}
           <div className="md:hidden">
             {canScrollLeft && (
-              <Button 
-                variant="secondary" 
-                size="icon" 
+              <Button
+                variant="secondary"
+                size="icon"
                 className="absolute left-2 top-1/2 -translate-y-1/2 z-40 rounded-full w-10 h-10 shadow-lg border border-white/50 bg-white/80 backdrop-blur-sm text-primary hover:bg-white"
                 onClick={() => scroll('left')}
               >
@@ -114,9 +243,9 @@ export default function Home() {
               </Button>
             )}
             {canScrollRight && (
-              <Button 
-                variant="secondary" 
-                size="icon" 
+              <Button
+                variant="secondary"
+                size="icon"
                 className="absolute right-2 top-1/2 -translate-y-1/2 z-40 rounded-full w-10 h-10 shadow-lg border border-white/50 bg-white/80 backdrop-blur-sm text-primary hover:bg-white"
                 onClick={() => scroll('right')}
               >
@@ -138,11 +267,11 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-            {categories.filter(c => c.id !== 'all').map((cat) => (
+            {categories.filter((c: Category) => c.id !== 'all').map((cat: Category) => (
               <Link key={cat.id} href={`/products?category=${cat.id}`}>
                 <div className="group cursor-pointer relative overflow-hidden rounded-2xl aspect-square shadow-md hover:shadow-xl transition-all">
                   <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors z-10" />
-                  <img src={cat.image} alt={cat.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  <img src={cat.image || ''} alt={cat.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                   <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-white">
                     <h3 className="text-2xl font-bold filter drop-shadow-md">{cat.name}</h3>
                   </div>
@@ -165,20 +294,39 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="space-y-12">
-          {/* Livestock Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {products.filter(p => p.category === 'lamb' && p.isFeatured).slice(0, 2).map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* 1. Lamb Product - Using categoryId */}
+          {products.filter(p => p.categoryId === 'lamb' && p.isFeatured).slice(0, 1).map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              relatedProducts={products.filter(p => p.categoryId === 'lamb')}
+              showNavigation={true}
+              showArrows={true}
+            />
+          ))}
 
-          {/* Vegetables Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {products.filter(p => p.category === 'veggies').slice(0, 2).map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {/* 2. Vegetable Product - Using categoryId */}
+          {products.filter(p => p.categoryId === 'veggies' && p.isFeatured).slice(0, 1).map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              relatedProducts={products.filter(p => p.categoryId === 'veggies')}
+              showNavigation={true}
+              showArrows={true}
+            />
+          ))}
+
+          {/* 3. Chicken Product - Using categoryId */}
+          {products.filter(p => p.categoryId === 'chicken' && p.isFeatured).slice(0, 1).map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              relatedProducts={products.filter(p => p.categoryId === 'chicken')}
+              showNavigation={true}
+              showArrows={true}
+            />
+          ))}
         </div>
       </section>
 

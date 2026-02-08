@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تأكيد حسابك - الملحمة</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            text-align: right;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e5e7eb;
+        }
+        .header {
+            background-color: #15803d; /* Green 700 */
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+        }
+        .content {
+            padding: 40px 30px;
+            color: #374151;
+        }
+        .h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #111827;
+        }
+        .p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .otp-box {
+            background-color: #f0fdf4;
+            border: 2px dashed #15803d;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .otp-code {
+            font-family: monospace;
+            font-size: 32px;
+            font-weight: 900;
+            color: #15803d;
+            letter-spacing: 4px;
+        }
+        .footer {
+            background-color: #f3f4f6;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #15803d;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>الملحمة</h1>
+        </div>
+        <div class="content">
+            <div class="h2">مرحباً بك!</div>
+            <div class="p">شكراً لتسجيلك معنا في متجر الملحمة للحوم الطازجة. لإكمال عملية التسجيل وتفعيل حسابك، يرجى استخدام رمز التحقق التالي:</div>
+            
+            <div class="otp-box">
+                <span class="otp-code">{{ .Token }}</span>
+            </div>
+
+            <div class="p">أو يمكنك الضغط على الزر أدناه لتفعيل الحساب مباشرة:</div>
+            <div style="text-align: center;">
+                <a href="{{ .ConfirmationURL }}" class="btn">تفعيل الحساب</a>
+            </div>
+
+            <div class="p" style="margin-top: 30px; font-size: 14px; color: #6b7280;">
+                إذا لم تقم بطلب هذا الرمز، يمكنك تجاهل هذه الرسالة بأمان.
+            </div>
+        </div>
+        <div class="footer">
+            &copy; 2024 متجر الملحمة. جميع الحقوق محفوظة.
+        </div>
+    </div>
+</body>
+</html>

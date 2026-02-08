@@ -1,42 +1,37 @@
 import { Navbar } from "@/components/layout/Navbar";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Button } from "@/components/ui/button";
-import { products } from "@/lib/mock-data";
 import { Trash2, Plus, Minus, ArrowRight, CreditCard } from "lucide-react";
-import { Link } from "wouter";
-import { useState } from "react";
+import { Link, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { motion } from "framer-motion";
-
-// Mock cart data derived from products
-const initialCartItems = [
-  { ...products[0], quantity: 1 },
-  { ...products[2], quantity: 2 },
-];
+import { useCart } from "@/lib/cart-context";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Cart() {
-  const [cartItems, setCartItems] = useState(initialCartItems);
+  const { items: cartItems, updateQuantity, removeItem, subtotal, deliveryFee, total, clearCart } = useCart();
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
-  const updateQuantity = (id: number, delta: number) => {
-    setCartItems(items => items.map(item => {
-      if (item.id === id) {
-        return { ...item, quantity: Math.max(1, item.quantity + delta) };
-      }
-      return item;
-    }));
+
+  const handleCheckout = () => {
+    if (!user) {
+      toast({
+        title: "يرجى تسجيل الدخول",
+        description: "يجب عليك تسجيل الدخول للمتابعة.",
+        variant: "destructive",
+      });
+      setLocation("/auth");
+      return;
+    }
+    setLocation("/checkout");
   };
-
-  const removeItem = (id: number) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-  };
-
-  const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const deliveryFee = 25;
-  const total = subtotal + deliveryFee;
 
   return (
-    <motion.div 
+    <motion.div
       className="min-h-screen bg-muted/10 pb-24 md:pb-0"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -44,7 +39,7 @@ export default function Cart() {
       transition={{ duration: 0.3 }}
     >
       <Navbar />
-      
+
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8 font-heading">سلة المشتريات</h1>
 
@@ -57,21 +52,21 @@ export default function Cart() {
                     <div className="h-20 w-20 rounded-xl overflow-hidden bg-muted flex-shrink-0">
                       <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-foreground truncate">{item.name}</h3>
                       <p className="text-primary font-bold">{item.price} ر.س</p>
                     </div>
 
                     <div className="flex items-center gap-3 bg-secondary/30 p-1 rounded-lg">
-                      <Button 
+                      <Button
                         variant="ghost" size="icon" className="h-6 w-6 rounded-md hover:bg-background"
                         onClick={() => updateQuantity(item.id, -1)}
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
                       <span className="w-4 text-center text-sm font-bold">{item.quantity}</span>
-                      <Button 
+                      <Button
                         variant="ghost" size="icon" className="h-6 w-6 rounded-md hover:bg-background"
                         onClick={() => updateQuantity(item.id, 1)}
                       >
@@ -79,7 +74,7 @@ export default function Cart() {
                       </Button>
                     </div>
 
-                    <Button 
+                    <Button
                       variant="ghost" size="icon" className="text-muted-foreground hover:text-red-500 hover:bg-red-50"
                       onClick={() => removeItem(item.id)}
                     >
@@ -88,13 +83,15 @@ export default function Cart() {
                   </CardContent>
                 </Card>
               ))}
+
+
             </div>
 
             <div className="lg:col-span-1">
               <Card className="border-none shadow-md sticky top-24">
                 <CardContent className="p-6">
                   <h3 className="text-xl font-bold mb-4 font-heading">ملخص الطلب</h3>
-                  
+
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">المجموع الفرعي</span>
@@ -111,9 +108,13 @@ export default function Cart() {
                     </div>
                   </div>
 
-                  <Button className="w-full mt-6 h-12 text-lg font-bold shadow-lg" size="lg">
-                    إتمام الشراء
-                    <CreditCard className="mr-2 h-5 w-5" />
+                  <Button
+                    className="w-full mt-6 h-12 text-lg font-bold shadow-lg gap-2"
+                    size="lg"
+                    onClick={handleCheckout}
+                  >
+                    <CreditCard className="h-5 w-5" />
+                    متابعة عملية الشراء
                   </Button>
                 </CardContent>
               </Card>
