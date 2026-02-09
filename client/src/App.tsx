@@ -116,7 +116,7 @@ function App() {
       <AuthProvider>
         <CartProvider>
           <TooltipProvider>
-            <WouterRouter base="/almarah/">
+            <WouterRouter base={import.meta.env.BASE_URL}>
               <Toaster />
               <NotificationManager />
               <Router />
