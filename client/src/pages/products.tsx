@@ -129,7 +129,19 @@ export default function Products() {
           { id: 'chicken', name: 'دواجن', icon: '🐔', image: '/assets/category-chicken.png' },
         ] as Category[];
       }
-      return [{ id: 'all', name: 'الكل', icon: '🍽️' }, ...data] as Category[];
+      const sortedData = (data || []).sort((a: any, b: any) => {
+        const order = ['lamb', 'beef', 'chicken'];
+        const indexA = order.indexOf(a.id);
+        const indexB = order.indexOf(b.id);
+
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+        if (indexA !== -1) return -1;
+        if (indexB !== -1) return 1;
+
+        return 0;
+      });
+
+      return [{ id: 'all', name: 'الكل', icon: '🍽️' }, ...sortedData] as Category[];
     }
   });
 
@@ -242,7 +254,7 @@ export default function Products() {
         </div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
           {filteredProducts.length > 0 ? (
             filteredProducts.map((product) => (
               <ProductCard

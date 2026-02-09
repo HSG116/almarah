@@ -118,14 +118,14 @@ export function ProductCard({ product, relatedProducts = [], showNavigation = fa
       <Dialog open={isOptionsOpen} onOpenChange={setIsOptionsOpen}>
         <DialogTrigger asChild>
           <div className="cursor-pointer">
-            <div className="relative aspect-[4/3] overflow-hidden">
+            <div className="relative aspect-square md:aspect-[4/3] overflow-hidden">
               <img
                 src={activeProduct.image}
                 alt={activeProduct.name}
                 className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${activeProduct.imageObjectPosition || 'object-center'}`}
               />
               {activeProduct.badge && (
-                <div className={`absolute top-4 right-4 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg z-20 ${activeProduct.badge === 'وفر المال' ? 'bg-orange-500' : 'bg-green-600'
+                <div className={`absolute top-2 right-2 md:top-4 md:right-4 text-white text-[10px] md:text-xs font-bold px-2 py-1 md:px-3 md:py-1.5 rounded-full shadow-lg z-20 ${activeProduct.badge === 'وفر المال' ? 'bg-orange-500' : 'bg-green-600'
                   }`}>
                   {activeProduct.badge}
                 </div>
@@ -136,63 +136,44 @@ export function ProductCard({ product, relatedProducts = [], showNavigation = fa
                 <div className="absolute inset-0 flex items-center justify-between px-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-30 pointer-events-none">
                   <Button
                     variant="secondary" size="icon"
-                    className="h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white text-primary pointer-events-auto border-0 outline-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="h-6 w-6 md:h-8 md:w-8 rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white text-primary pointer-events-auto border-0 outline-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                     onClick={handleNext}
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-3 w-3 md:h-4 md:w-4" />
                   </Button>
                   <Button
                     variant="secondary" size="icon"
-                    className="h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white text-primary pointer-events-auto border-0 outline-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="h-6 w-6 md:h-8 md:w-8 rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white text-primary pointer-events-auto border-0 outline-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                     onClick={handlePrev}
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-3 w-3 md:h-4 md:w-4" />
                   </Button>
                 </div>
               )}
             </div>
 
-            <CardContent className="p-0 -mt-8 relative z-10">
-              <div className="bg-white rounded-t-[2.5rem] p-6 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] text-center border-x border-t border-gray-50">
-                <h3 className="font-bold text-lg text-gray-800 mb-2 group-hover:text-green-700 transition-colors">{activeProduct.name}</h3>
-                <div className="flex flex-col items-center gap-1">
-                  <span className="text-2xl font-black text-gray-900 flex items-center gap-1">
-                    {activeProduct.price.toFixed(2)}
-                    <img src="/images/currency-icon.png" className="h-5 w-auto" alt="ر.س" />
-                  </span>
-                  <span className="text-xs font-medium text-gray-500">
-                    {activeProduct.unit}
-                  </span>
-                  {activeProduct.size && activeProduct.weight && (
-                    <span className="text-xs font-medium text-gray-500 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
-                      الحجم: {activeProduct.size} ({activeProduct.weight})
+            <CardContent className="p-0 -mt-6 md:-mt-8 relative z-10">
+              <div className="bg-white rounded-t-[1.5rem] md:rounded-t-[2.5rem] p-3 md:p-6 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] text-center border-x border-t border-gray-50 h-[140px] md:h-auto flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-sm md:text-lg text-gray-800 mb-1 group-hover:text-green-700 transition-colors line-clamp-1">{activeProduct.name}</h3>
+                  <div className="flex flex-col items-center gap-0.5 md:gap-1">
+                    <span className="text-lg md:text-2xl font-black text-gray-900 flex items-center gap-1">
+                      {activeProduct.price.toFixed(0)}
+                      <span className="text-xs md:text-sm text-gray-500 font-normal">ر.س</span>
                     </span>
-                  )}
-                  <p className="text-[10px] text-muted-foreground mt-1">شامل ضريبة القيمة المضافة 15%</p>
+                    <span className="text-[10px] md:text-xs font-medium text-gray-500">
+                      /{activeProduct.unit}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Product Navigation Below Details - Only show in home page */}
-                {showNavigation && (
-                  <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-gray-50">
-                    <Button
-                      variant="ghost" size="icon"
-                      className="h-8 w-8 rounded-full text-primary hover:bg-green-50"
-                      onClick={handleNext}
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </Button>
-                    <span className="text-xs font-medium text-gray-400">
-                      {currentIndex + 1} / {categoryProducts.length}
-                    </span>
-                    <Button
-                      variant="ghost" size="icon"
-                      className="h-8 w-8 rounded-full text-primary hover:bg-green-50"
-                      onClick={handlePrev}
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </Button>
-                  </div>
-                )}
+                <Button
+                  size="sm"
+                  className="w-full bg-green-700 hover:bg-green-800 text-white rounded-xl h-8 md:h-10 text-xs md:text-sm font-bold shadow-md shadow-green-700/20 mt-2"
+                >
+                  أضف
+                  <ShoppingCart className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+                </Button>
               </div>
             </CardContent>
           </div>
