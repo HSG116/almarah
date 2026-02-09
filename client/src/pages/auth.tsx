@@ -245,46 +245,53 @@ export default function Auth() {
     }
   };
 
-  // Bright "Luxury White/Orange" Theme (Clean, Modern, Vibrant)
+  // Strong "Brand Red" Theme (Clean, Modern, Powerful)
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#FAFAFA] font-sans overflow-hidden relative selection:bg-orange-500/30 text-zinc-900">
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#FAFAFA] font-sans overflow-hidden relative selection:bg-red-500/30 text-zinc-900">
       <Navbar />
 
-      {/* --- Dynamic Background Atmosphere (Light) --- */}
-      <div className="absolute inset-0 z-0">
+      {/* --- Dynamic Background Atmosphere (Light & Red) --- */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
         {/* Subtle pattern */}
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] invert" />
 
-        {/* Animated Orbs (Orange/Yellow) */}
+        {/* Animated Orbs (Red/Crimson) */}
         <motion.div
-          animate={{ x: [0, 50, 0], y: [0, -30, 0], opacity: [0.5, 0.8, 0.5] }}
+          animate={{ x: [0, 50, 0], y: [0, -30, 0], opacity: [0.3, 0.5, 0.3] }}
           transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-          className="absolute top-[-20%] left-[-10%] w-[800px] h-[800px] bg-orange-400/10 rounded-full blur-[100px]"
+          className="absolute top-[-20%] left-[-10%] w-[800px] h-[800px] bg-red-600/5 rounded-full blur-[100px]"
         />
         <motion.div
-          animate={{ x: [0, -50, 0], y: [0, 40, 0], opacity: [0.4, 0.6, 0.4] }}
+          animate={{ x: [0, -50, 0], y: [0, 40, 0], opacity: [0.2, 0.4, 0.2] }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-[-20%] right-[-10%] w-[700px] h-[700px] bg-yellow-400/10 rounded-full blur-[120px]"
+          className="absolute bottom-[-20%] right-[-10%] w-[700px] h-[700px] bg-red-800/5 rounded-full blur-[120px]"
         />
       </div>
 
-      <div className="relative z-10 w-full max-w-6xl flex flex-col-reverse lg:flex-row items-center justify-between p-4 px-6 lg:px-20 gap-10">
+      <div className="relative z-10 w-full max-w-6xl flex flex-col-reverse lg:flex-row items-center justify-between p-4 px-6 lg:px-20 gap-8 lg:gap-16">
 
         {/* Right Side: Interactive Form Card (Glass - White) */}
         <motion.div
           className="w-full max-w-[450px]"
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, type: "spring" }}
         >
-          <div className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(249,115,22,0.15)] p-8 lg:p-10 relative overflow-hidden ring-1 ring-gray-100">
+          {/* Mobile Header Logo (Visible only on mobile) */}
+          <div className="lg:hidden flex justify-center mb-6">
+            <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center shadow-sm border border-red-100">
+              <ShieldCheck className="w-8 h-8 text-red-700" />
+            </div>
+          </div>
+
+          <div className="bg-white/90 backdrop-blur-2xl border border-white/50 rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(185,28,28,0.1)] p-6 sm:p-8 lg:p-10 relative overflow-hidden ring-1 ring-black/5">
 
             {/* Header */}
             <div className="text-center mb-8">
-              <h2 className="text-4xl font-black text-zinc-900 mb-2 font-heading tracking-tight">
+              <h2 className="text-3xl lg:text-4xl font-black text-zinc-900 mb-2 font-heading tracking-tight">
                 {step === 'form' ? 'تفضل بالدخول' : step === 'selection' ? 'تفعيل الحساب' : 'التحقق'}
               </h2>
-              <p className="text-gray-500 font-medium text-sm">
+              <p className="text-gray-500 font-bold text-sm">
                 {step === 'form' ? 'سجل دخولك أو أنشئ حساباً جديداً' : 'أكمل الخطوات البسيطة للتفعيل'}
               </p>
             </div>
@@ -298,34 +305,34 @@ export default function Auth() {
                   exit={{ opacity: 0, x: -20 }}
                 >
                   <Tabs defaultValue="login" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-100 p-1.5 rounded-2xl h-14">
-                      <TabsTrigger value="login" className="rounded-xl h-full font-bold text-gray-600 data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm transition-all duration-300">تسجيل دخول</TabsTrigger>
-                      <TabsTrigger value="register" className="rounded-xl h-full font-bold text-gray-600 data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm transition-all duration-300">حساب جديد</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-100/80 p-1.5 rounded-2xl h-14">
+                      <TabsTrigger value="login" className="rounded-xl h-full font-bold text-gray-600 data-[state=active]:bg-white data-[state=active]:text-red-700 data-[state=active]:shadow-sm transition-all duration-300">تسجيل دخول</TabsTrigger>
+                      <TabsTrigger value="register" className="rounded-xl h-full font-bold text-gray-600 data-[state=active]:bg-white data-[state=active]:text-red-700 data-[state=active]:shadow-sm transition-all duration-300">حساب جديد</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="login" className="mt-0 space-y-5">
                       <div className="space-y-2">
-                        <Label className="text-gray-700 font-bold text-xs uppercase">البريد الإلكتروني</Label>
+                        <Label className="text-gray-700 font-bold text-xs uppercase mr-1">البريد الإلكتروني</Label>
                         <Input
                           {...loginForm.register("email")}
                           dir="ltr"
-                          className="h-14 bg-gray-50 border-gray-100 focus:bg-white focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 rounded-2xl transition-all text-lg px-5 shadow-sm text-zinc-800"
+                          className="h-14 bg-gray-50 border-gray-100 focus:bg-white focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 rounded-2xl transition-all text-lg px-4 shadow-sm text-zinc-800 placeholder:text-gray-400"
                           placeholder="name@example.com"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-gray-700 font-bold text-xs uppercase">كلمة المرور</Label>
+                        <Label className="text-gray-700 font-bold text-xs uppercase mr-1">كلمة المرور</Label>
                         <Input
                           type="password"
                           {...loginForm.register("password")}
-                          className="h-14 bg-gray-50 border-gray-100 focus:bg-white focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 rounded-2xl transition-all text-lg px-5 shadow-sm text-zinc-800 tracking-widest"
+                          className="h-14 bg-gray-50 border-gray-100 focus:bg-white focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 rounded-2xl transition-all text-lg px-4 shadow-sm text-zinc-800 tracking-widest placeholder:text-gray-400"
                           placeholder="••••••••"
                         />
                       </div>
                       <Button
                         type="submit"
                         disabled={loginMutation.isPending}
-                        className="w-full h-14 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white font-black text-xl shadow-lg shadow-orange-600/20 active:scale-[0.98] transition-all duration-300 mt-2"
+                        className="w-full h-14 rounded-2xl bg-[#B91C1C] hover:bg-[#991B1B] text-white font-black text-xl shadow-lg shadow-red-900/10 active:scale-[0.98] transition-all duration-300 mt-2"
                       >
                         {loginMutation.isPending ? <Loader2 className="animate-spin w-6 h-6" /> : "دخول"}
                       </Button>
@@ -333,25 +340,25 @@ export default function Auth() {
 
                     <TabsContent value="register" className="mt-0 space-y-4">
                       <form onSubmit={registerForm.handleSubmit(handleRegisterSubmit)} className="space-y-4">
-                        <Input {...registerForm.register("username")} dir="ltr" placeholder="اسم المستخدم" className="h-12 bg-gray-50 border-gray-100 rounded-xl focus:border-orange-500/30 focus:ring-orange-500/10" />
-                        <Input {...registerForm.register("email")} type="email" dir="ltr" placeholder="البريد الإلكتروني" className="h-12 bg-gray-50 border-gray-100 rounded-xl focus:border-orange-500/30 focus:ring-orange-500/10" />
+                        <Input {...registerForm.register("username")} dir="ltr" placeholder="اسم المستخدم" className="h-12 bg-gray-50 border-gray-100 rounded-xl focus:bg-white focus:border-red-500/30 focus:ring-red-500/10 transition-all font-medium" />
+                        <Input {...registerForm.register("email")} type="email" dir="ltr" placeholder="البريد الإلكتروني" className="h-12 bg-gray-50 border-gray-100 rounded-xl focus:bg-white focus:border-red-500/30 focus:ring-red-500/10 transition-all font-medium" />
                         <div className="flex gap-2" dir="ltr">
                           <CountrySelect value={countryCode} onChange={setCountryCode} />
-                          <Input {...registerForm.register("phone")} type="tel" placeholder="5xxxxxxxx" className="h-12 bg-gray-50 border-gray-100 rounded-xl focus:border-orange-500/30 focus:ring-orange-500/10 flex-1 font-bold" />
+                          <Input {...registerForm.register("phone")} type="tel" placeholder="5xxxxxxxx" className="h-12 bg-gray-50 border-gray-100 rounded-xl focus:bg-white focus:border-red-500/30 focus:ring-red-500/10 flex-1 font-bold text-lg transition-all" />
                         </div>
                         <div className="grid grid-cols-2 gap-3">
-                          <Input type="password" {...registerForm.register("password")} placeholder="كلمة المرور" className="h-12 bg-gray-50 border-gray-100 rounded-xl focus:border-orange-500/30 focus:ring-orange-500/10" />
-                          <Input type="password" {...registerForm.register("confirmPassword")} placeholder="تأكيدها" className="h-12 bg-gray-50 border-gray-100 rounded-xl focus:border-orange-500/30 focus:ring-orange-500/10" />
+                          <Input type="password" {...registerForm.register("password")} placeholder="كلمة المرور" className="h-12 bg-gray-50 border-gray-100 rounded-xl focus:bg-white focus:border-red-500/30 focus:ring-red-500/10 transition-all font-medium" />
+                          <Input type="password" {...registerForm.register("confirmPassword")} placeholder="تأكيدها" className="h-12 bg-gray-50 border-gray-100 rounded-xl focus:bg-white focus:border-red-500/30 focus:ring-red-500/10 transition-all font-medium" />
                         </div>
 
                         <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                          <div className={`h-full transition-all duration-500 ${passwordStrength > 50 ? 'bg-green-500' : 'bg-orange-400'}`} style={{ width: `${passwordStrength}%` }} />
+                          <div className={`h-full transition-all duration-500 ${passwordStrength > 50 ? 'bg-green-500' : 'bg-red-400'}`} style={{ width: `${passwordStrength}%` }} />
                         </div>
 
                         <Button
                           type="submit"
                           disabled={registerMutation.isPending}
-                          className="w-full h-12 rounded-xl bg-gray-900 hover:bg-black text-white font-bold text-lg shadow-md transition-all mt-2"
+                          className="w-full h-12 rounded-xl bg-zinc-900 hover:bg-black text-white font-bold text-lg shadow-md transition-all mt-2"
                         >
                           {registerMutation.isPending ? <Loader2 className="animate-spin" /> : "إنشاء حساب"}
                         </Button>
@@ -364,14 +371,14 @@ export default function Auth() {
               {step === "selection" && (
                 <motion.div
                   key="selection"
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
                   className="space-y-4 py-2"
                 >
                   <button
                     onClick={() => handleMethodSelect("gmail")}
-                    className="w-full group bg-white border border-gray-100 hover:border-orange-200 p-5 rounded-2xl shadow-sm hover:shadow-lg transition-all flex items-center gap-5"
+                    className="w-full group bg-white border border-gray-100 hover:border-red-200 p-5 rounded-2xl shadow-sm hover:shadow-lg transition-all flex items-center gap-5"
                   >
                     <div className="w-14 h-14 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-colors">
                       <Mail className="w-7 h-7" />
@@ -380,7 +387,7 @@ export default function Auth() {
                       <h3 className="font-bold text-gray-900 text-lg">عبر البريد</h3>
                       <p className="text-gray-400 text-xs">Gmail Verification</p>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-orange-500 rotate-180 transition-colors" />
+                    <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-red-500 rotate-180 transition-colors" />
                   </button>
 
                   <button
@@ -394,7 +401,7 @@ export default function Auth() {
                       <h3 className="font-bold text-gray-900 text-lg">عبر تيليجرام</h3>
                       <p className="text-gray-400 text-xs">Telegram Bot</p>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-orange-500 rotate-180 transition-colors" />
+                    <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-blue-500 rotate-180 transition-colors" />
                   </button>
 
                   <Button variant="ghost" className="w-full mt-4 text-gray-400 hover:text-gray-900" onClick={() => setStep("form")}>رجوع</Button>
@@ -410,7 +417,7 @@ export default function Auth() {
                 >
                   {otpMethod === "telegram" ? (
                     <div className="space-y-6">
-                      <div className="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto animate-pulse">
+                      <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto animate-pulse">
                         <Send className="w-10 h-10" />
                       </div>
                       <div>
@@ -429,7 +436,7 @@ export default function Auth() {
                         {[0, 1, 2, 3, 4, 5].map((i) => (
                           <Input
                             key={i}
-                            className="w-12 h-14 text-center text-3xl font-black bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl transition-all p-0"
+                            className="w-12 h-14 text-center text-3xl font-black bg-gray-50 border-gray-200 focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 rounded-xl transition-all p-0"
                             maxLength={1}
                             value={otpValue[i] || ""}
                             onChange={(e) => {
@@ -447,7 +454,7 @@ export default function Auth() {
                           />
                         ))}
                       </div>
-                      <Button onClick={verifyOtp} disabled={otpValue.length !== 6 || verifyOtpMutation.isPending} className="w-full h-14 bg-orange-600 hover:bg-orange-700 text-white font-black text-lg rounded-2xl shadow-lg shadow-orange-600/20">
+                      <Button onClick={verifyOtp} disabled={otpValue.length !== 6 || verifyOtpMutation.isPending} className="w-full h-14 bg-[#B91C1C] hover:bg-[#991B1B] text-white font-black text-lg rounded-2xl shadow-lg shadow-red-900/20">
                         تأكيد الرمز
                       </Button>
                     </div>
@@ -458,35 +465,45 @@ export default function Auth() {
           </div>
         </motion.div>
 
-        {/* Left Side: Brand & Hero Custom Illustration or Text */}
+        {/* Left Side: Brand & Hero Custom Illustration or Text (Modified for better mobile fit) */}
         <motion.div
           className="hidden lg:flex flex-col items-center lg:items-end text-right max-w-xl"
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <div className="relative">
-            <div className="absolute -inset-10 bg-orange-500/20 rounded-full blur-[60px]" />
-            <ShieldCheck className="w-32 h-32 text-orange-600 relative z-10 drop-shadow-2xl" />
+          <div className="relative mb-10">
+            <div className="absolute -inset-10 bg-red-500/10 rounded-full blur-[60px]" />
+            <ShieldCheck className="w-40 h-40 text-[#B91C1C] relative z-10 drop-shadow-2xl" />
           </div>
 
-          <h1 className="text-7xl font-black text-zinc-900 mt-10 leading-tight">
-            الطعم <br /> <span className="text-transparent bg-clip-text bg-gradient-to-l from-orange-600 to-orange-400">الأصيل.</span>
+          <h1 className="text-7xl font-black text-zinc-900 leading-tight">
+            الطعم <br /> <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#B91C1C] to-red-500">الأصيل.</span>
           </h1>
           <p className="text-xl text-gray-500 mt-6 font-medium leading-relaxed max-w-lg">
             نقدم لك أفضل تجربة شرائية للحوم الطازجة. جودة تليق بك وبأحبابك، وتوصيل سريع ومضمون.
           </p>
 
-          <div className="mt-8 flex gap-4">
-            <div className="px-6 py-3 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
+          <div className="mt-10 flex gap-4">
+            <div className="px-6 py-4 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-shadow">
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
               <span className="font-bold text-gray-700">توصيل اليوم</span>
             </div>
-            <div className="px-6 py-3 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
-              <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse" />
+            <div className="px-6 py-4 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-shadow">
+              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
               <span className="font-bold text-gray-700">ذبح يومي</span>
             </div>
           </div>
+        </motion.div>
+
+        {/* Mobile-Only Simple Footer/Brand Text */}
+        <motion.div
+          className="lg:hidden text-center mt-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <p className="text-gray-400 text-sm font-medium">أفضل تجربة شرائية للحوم الطازجة</p>
         </motion.div>
 
       </div>
