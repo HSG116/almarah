@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
-import { Home, ShoppingBag, ShoppingCart, User, ShieldCheck } from "lucide-react";
-import { motion } from "framer-motion";
+import { Home, ShoppingCart, User, ShieldCheck } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/lib/cart-context";
 
@@ -17,64 +17,159 @@ export function BottomNav() {
     ? { href: user.role === 'admin' ? '/admin' : `/${user.role}`, icon: ShieldCheck, label: "محطتي", badge: 0 }
     : null;
 
+  // Removed Products - keeping only essential navigation
   const finalNavItems = [
     { href: "/", icon: Home, label: "الرئيسي", badge: 0 },
-    { href: "/products", icon: ShoppingBag, label: "المنتجات", badge: 0 },
-    // If staff, insert dashboard in middle, else regular
     ...(staffLink ? [staffLink] : []),
     { href: "/cart", icon: ShoppingCart, label: "السلة", badge: items.length },
     { href: "/profile", icon: User, label: "حسابي", badge: 0 },
   ];
 
   return (
-    <div className="md:hidden fixed bottom-6 left-6 right-6 z-50">
-      {/* Container: Floating + Blurry + Rounded */}
-      <div className="bg-white/90 backdrop-blur-xl border border-white/40 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] rounded-[2rem] p-2 flex items-center justify-around h-[5rem]">
-        {finalNavItems.map((item) => {
-          const isActive = location === item.href;
-          return (
-            <Link key={item.href} href={item.href}>
-              <a className="flex flex-col items-center justify-center w-full h-full gap-1 cursor-pointer group relative">
+    <div className="md:hidden fixed bottom-4 left-4 right-4 z-50">
+      {/* Premium Container: Enhanced Blur + Glassmorphism */}
+      <motion.div
+        className="relative bg-white/70 backdrop-blur-[40px] border border-white/60 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] rounded-[2.5rem] p-3 overflow-hidden"
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+      >
+        {/* Ambient Background Glow */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 opacity-50" />
 
-                {/* Active Background Pill (Optional: subtle glow) */}
-                {isActive && (
+        {/* Navigation Items Container */}
+        <div className="relative flex items-center justify-around h-[4.5rem]">
+          {finalNavItems.map((item, index) => {
+            const isActive = location === item.href;
+
+            return (
+              <Link key={item.href} href={item.href}>
+                <motion.a
+                  className="flex flex-col items-center justify-center w-full h-full gap-1.5 cursor-pointer group relative px-4"
+                  whileTap={{ scale: 0.92 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                >
+                  {/* Active Background Bubble with Glow */}
+                  <AnimatePresence>
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeNavBubble"
+                        className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 rounded-[1.75rem] -z-10"
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.8, opacity: 0 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 350,
+                          damping: 25,
+                          opacity: { duration: 0.2 }
+                        }}
+                      >
+                        {/* Subtle Glow Ring */}
+                        <div className="absolute inset-0 rounded-[1.75rem] bg-gradient-to-br from-primary/20 to-transparent blur-sm" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Icon Container with Advanced Animation */}
                   <motion.div
-                    layoutId="navPill"
-                    className="absolute inset-0 bg-primary/5 rounded-[1.5rem] -z-10"
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  />
-                )}
+                    className={`
+                      relative h-11 w-11 flex items-center justify-center rounded-[1.25rem]
+                      ${isActive
+                        ? 'bg-primary text-white shadow-lg shadow-primary/40'
+                        : 'bg-gray-50/50 text-gray-400 group-hover:bg-gray-100/70'
+                      }
+                    `}
+                    animate={{
+                      scale: isActive ? [1, 1.1, 1] : 1,
+                      rotate: isActive ? [0, -5, 5, 0] : 0,
+                    }}
+                    transition={{
+                      scale: { duration: 0.4, ease: "easeInOut" },
+                      rotate: { duration: 0.5, ease: "easeInOut" }
+                    }}
+                  >
+                    {/* Icon with Bounce Animation */}
+                    <motion.div
+                      animate={{
+                        y: isActive ? [0, -3, 0] : 0,
+                      }}
+                      transition={{
+                        duration: 0.6,
+                        ease: "easeOut",
+                        delay: 0.1
+                      }}
+                    >
+                      <item.icon
+                        className="h-5 w-5"
+                        strokeWidth={isActive ? 2.8 : 2.2}
+                      />
+                    </motion.div>
 
-                {/* Icon Container: Squircle */}
-                <div className={`
-                  relative h-10 w-10 flex items-center justify-center rounded-2xl transition-all duration-300
-                  ${isActive
-                    ? 'bg-primary text-white shadow-lg shadow-primary/30 scale-110'
-                    : 'bg-transparent text-gray-400 group-hover:bg-gray-50'
-                  }
-                `}>
-                  <item.icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
+                    {/* Badge with Pulse Animation */}
+                    <AnimatePresence>
+                      {item.badge && item.badge > 0 && (
+                        <motion.span
+                          className="absolute -top-1.5 -right-1.5 z-20 h-5 w-5 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full ring-2 ring-white font-black shadow-lg"
+                          initial={{ scale: 0 }}
+                          animate={{
+                            scale: [1, 1.2, 1],
+                          }}
+                          exit={{ scale: 0 }}
+                          transition={{
+                            scale: {
+                              repeat: Infinity,
+                              duration: 2,
+                              ease: "easeInOut"
+                            }
+                          }}
+                        >
+                          {item.badge}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
 
-                  {/* Badge */}
-                  {item.badge && item.badge > 0 && (
-                    <span className="absolute -top-1 -right-1 z-20 h-4 w-4 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full ring-2 ring-white font-bold animate-pulse">
-                      {item.badge}
-                    </span>
-                  )}
-                </div>
+                  {/* Label with Smooth Fade & Slide */}
+                  <motion.span
+                    className={`
+                      text-[10px] font-extrabold tracking-tight
+                      ${isActive ? 'text-primary' : 'text-gray-500'}
+                    `}
+                    animate={{
+                      opacity: isActive ? 1 : 0.7,
+                      y: isActive ? 0 : 2,
+                      scale: isActive ? 1 : 0.95
+                    }}
+                    transition={{
+                      duration: 0.3,
+                      ease: "easeOut"
+                    }}
+                  >
+                    {item.label}
+                  </motion.span>
 
-                {/* Label */}
-                <span className={`
-                  text-[10px] font-bold transition-all duration-300
-                  ${isActive ? 'text-primary translate-y-0 opacity-100' : 'text-gray-400 translate-y-1 opacity-70'}
-                `}>
-                  {item.label}
-                </span>
-              </a>
-            </Link>
-          );
-        })}
-      </div>
+                  {/* Bottom Indicator Line */}
+                  <AnimatePresence>
+                    {isActive && (
+                      <motion.div
+                        className="absolute -bottom-1 left-1/2 w-1 h-1 bg-primary rounded-full"
+                        initial={{ scale: 0, x: "-50%" }}
+                        animate={{ scale: 1, x: "-50%" }}
+                        exit={{ scale: 0, x: "-50%" }}
+                        transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                      />
+                    )}
+                  </AnimatePresence>
+                </motion.a>
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Bottom Shine Effect */}
+        <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+      </motion.div>
     </div>
   );
 }
