@@ -30,13 +30,19 @@ export default function Auth() {
   // Redirect Logic: Immediately send staff to their dashboards upon login
   useEffect(() => {
     if (user) {
-      if (user.role === 'admin' || user.isAdmin) {
-        setLocation("/admin");
-      } else if (user.role && user.role !== 'customer') {
-        // Staff members (butcher, delivery, etc.)
+      const confinedRoles = ['delivery', 'butcher', 'accountant', 'support', 'designer', 'manager'];
+
+      // 1. Check for specific confined staff roles FIRST
+      // This ensures a 'butcher' goes to /butcher even if they accidentally have isAdmin=true
+      if (user.role && confinedRoles.includes(user.role)) {
         setLocation(`/${user.role}`);
-      } else {
-        // Customers
+      }
+      // 2. Then check for Admin
+      else if (user.role === 'admin' || user.isAdmin) {
+        setLocation("/admin");
+      }
+      // 3. Default to Customer Home
+      else {
         setLocation("/");
       }
     }
