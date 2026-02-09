@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useLocation } from "wouter";
 import { AuthProvider, useAuth } from "./hooks/use-auth";
 import { CartProvider } from "./lib/cart-context";
+import { NotificationManager } from "@/components/layout/NotificationManager";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Products from "@/pages/products";
@@ -117,6 +118,7 @@ function App() {
           <TooltipProvider>
             <WouterRouter>
               <Toaster />
+              <NotificationManager />
               <Router />
             </WouterRouter>
           </TooltipProvider>

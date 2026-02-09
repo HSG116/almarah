@@ -9,6 +9,7 @@
     "build": "tsx script/build.ts",
     "start": "node dist/index.cjs",
     "check": "tsc",
+    "deploy": "git add . && git commit -m \"Deploy to main\" && git push origin main",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {

@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/layout/Navbar";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { MobileHeader } from "@/components/layout/MobileHeader";
 import { ProductCard } from "@/components/ui/product-card";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -162,13 +163,15 @@ export default function Products() {
 
   return (
     <motion.div
-      className="min-h-screen bg-muted/10 pb-20 md:pb-0"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.3 }}
+      className="min-h-screen bg-muted/10 pb-20 md:pb-0 font-sans"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
     >
       <Navbar />
+      <MobileHeader />
+
 
       {isStoreClosed && (
         <div className="bg-rose-600 text-white py-4 px-6 text-center font-black animate-pulse z-[100] sticky top-0 shadow-lg flex items-center justify-center gap-3">
