@@ -41,23 +41,48 @@ function Router() {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user && user.role && user.role !== 'customer') {
-      const customerRoutes = ['/', '/products', '/cart', '/profile', '/checkout', '/auth'];
-      const staffRoutes = ['/staff', '/delivery', '/butcher', '/accountant', '/support', '/designer', '/manager'];
+    if (!user) return;
 
-      // If staff tries to access customer pages or the generic /staff page, redirect to their specific role page
-      if (customerRoutes.includes(location) || location === '/staff') {
-        if (user.role === 'admin' || user.isAdmin) {
-          setLocation('/admin');
-        } else {
-          // Redirect to specific role page if it's not one of the staff routes already
-          const rolePath = `/${user.role}`;
-          if (location !== rolePath) {
-            setLocation(rolePath);
-          }
-        }
+    // 1. Strictly Confined Staff Roles
+    // These roles are NOT allowed to navigate anywhere except their specific dashboard
+    const confinedRoles = ['delivery', 'butcher', 'accountant', 'support', 'designer', 'manager'];
+
+    const role = user.role || 'customer';
+    const isConfinedStaff = confinedRoles.includes(role);
+    const isAdmin = role === 'admin' || user.isAdmin === true;
+
+    // Case A: Confined Staff (e.g. Butcher, Delivery)
+    if (isConfinedStaff && !isAdmin) {
+      const allowedPath = `/${role}`;
+      // Allow exact match or sub-paths of their role
+      if (!location.startsWith(allowedPath)) {
+        // Prevent access to Admin, Home, or other Staff pages
+        // Redirect Forcefully to their Dashboard
+        setLocation(allowedPath);
       }
     }
+
+    // Case B: Admin
+    // If Admin is on a customer-only page (like auth), redirect to dashboard
+    else if (isAdmin) {
+      if (location === '/auth') {
+        setLocation('/admin');
+      }
+    }
+
+    // Case C: Customer
+    // Customers cannot access /admin or /staff routes
+    else if (role === 'customer') {
+      const isRestricted =
+        location.startsWith('/admin') ||
+        location.startsWith('/staff') ||
+        confinedRoles.some(r => location.startsWith(`/${r}`));
+
+      if (isRestricted) {
+        setLocation('/');
+      }
+    }
+
   }, [user, location, setLocation]);
 
   return (
