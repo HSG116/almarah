@@ -359,31 +359,33 @@ export default function Auth() {
                       </TabsList>
 
                       <TabsContent value="login" className="mt-0 space-y-6">
-                        <div className="space-y-2">
-                          <Label className="text-gray-700 font-extrabold text-sm mr-2">البريد الإلكتروني</Label>
-                          <Input
-                            {...loginForm.register("email")}
-                            dir="ltr"
-                            className="h-16 bg-white border-gray-200 focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 rounded-2xl transition-all text-xl px-4 shadow-sm text-zinc-800 placeholder:text-gray-300 font-medium"
-                            placeholder="name@example.com"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-gray-700 font-extrabold text-sm mr-2">كلمة المرور</Label>
-                          <Input
-                            type="password"
-                            {...loginForm.register("password")}
-                            className="h-16 bg-white border-gray-200 focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 rounded-2xl transition-all text-xl px-4 shadow-sm text-zinc-800 tracking-widest placeholder:text-gray-300 font-medium"
-                            placeholder="••••••••"
-                          />
-                        </div>
-                        <Button
-                          type="submit"
-                          disabled={loginMutation.isPending}
-                          className="w-full h-16 rounded-2xl bg-[#B91C1C] hover:bg-[#991B1B] text-white font-black text-2xl shadow-[0_10px_30px_-10px_rgba(185,28,28,0.4)] hover:shadow-[0_20px_40px_-10px_rgba(185,28,28,0.5)] active:scale-[0.98] transition-all duration-300 mt-4"
-                        >
-                          {loginMutation.isPending ? <Loader2 className="animate-spin w-8 h-8" /> : "دخول"}
-                        </Button>
+                        <form onSubmit={loginForm.handleSubmit((data) => loginMutation.mutate(data))} className="space-y-6">
+                          <div className="space-y-2">
+                            <Label className="text-gray-700 font-extrabold text-sm mr-2">البريد الإلكتروني</Label>
+                            <Input
+                              {...loginForm.register("email")}
+                              dir="ltr"
+                              className="h-16 bg-white border-gray-200 focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 rounded-2xl transition-all text-xl px-4 shadow-sm text-zinc-800 placeholder:text-gray-300 font-medium"
+                              placeholder="name@example.com"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-gray-700 font-extrabold text-sm mr-2">كلمة المرور</Label>
+                            <Input
+                              type="password"
+                              {...loginForm.register("password")}
+                              className="h-16 bg-white border-gray-200 focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 rounded-2xl transition-all text-xl px-4 shadow-sm text-zinc-800 tracking-widest placeholder:text-gray-300 font-medium"
+                              placeholder="••••••••"
+                            />
+                          </div>
+                          <Button
+                            type="submit"
+                            disabled={loginMutation.isPending}
+                            className="w-full h-16 rounded-2xl bg-[#B91C1C] hover:bg-[#991B1B] text-white font-black text-2xl shadow-[0_10px_30px_-10px_rgba(185,28,28,0.4)] hover:shadow-[0_20px_40px_-10px_rgba(185,28,28,0.5)] active:scale-[0.98] transition-all duration-300 mt-4"
+                          >
+                            {loginMutation.isPending ? <Loader2 className="animate-spin w-8 h-8" /> : "دخول"}
+                          </Button>
+                        </form>
                       </TabsContent>
 
                       <TabsContent value="register" className="mt-0 space-y-4">
