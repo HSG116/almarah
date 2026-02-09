@@ -494,7 +494,6 @@ export function ButcherTerminal({ orders, staffMembers, products, onPrintRequest
 
   return (
     <Tabs defaultValue="active" className="space-y-6">
-      {debugInfo}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="hidden md:block">
           <h2 className="text-3xl font-bold font-heading text-primary">محطة التجهيز والتقطيع</h2>
