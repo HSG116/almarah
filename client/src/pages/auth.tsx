@@ -245,247 +245,189 @@ export default function Auth() {
     }
   };
 
+  // Ultra-Modern "Luxury Dark/Gold" Theme with 3D Tilt & Glassmorphism
   return (
-    <div className="min-h-screen w-full flex bg-background font-sans overflow-hidden relative">
-      {/* Dynamic Background for Mobile */}
-      <div className="absolute inset-0 lg:hidden z-0">
-        <div className="absolute inset-0 bg-black/60 z-10" />
-        <img
-          src="/images/auth-bg-mobile.jpg"
-          onError={(e) => (e.currentTarget.src = "https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?q=80&w=2070&auto=format&fit=crop")}
-          alt="Background"
-          className="w-full h-full object-cover"
+    <div className="min-h-screen w-full flex items-center justify-center bg-zinc-950 font-sans overflow-hidden relative selection:bg-primary/30 text-white">
+      <Navbar />
+
+      {/* --- Dynamic Background Atmosphere --- */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,100,0,0.15),transparent_70%)] animate-pulse-slow" />
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]" />
+
+        {/* Animated Orbs */}
+        <motion.div
+          animate={{ x: [0, 100, 0], y: [0, -50, 0], scale: [1, 1.2, 1] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px]"
+        />
+        <motion.div
+          animate={{ x: [0, -100, 0], y: [0, 50, 0], scale: [1, 1.5, 1] }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-blue-900/10 rounded-full blur-[150px]"
         />
       </div>
 
-      {/* Desktop Image Section */}
-      <motion.div
-        className="hidden lg:flex w-1/2 relative bg-black items-center justify-center overflow-hidden"
-        initial={{ x: -100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />
-        <motion.img
-          src="/images/auth-bg-desktop.jpg"
-          onError={(e) => (e.currentTarget.src = "https://images.unsplash.com/photo-1558030006-450675393462?q=80&w=1931&auto=format&fit=crop")}
-          alt="Premium Meat"
-          className="absolute inset-0 w-full h-full object-cover"
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 10, repeat: Infinity, repeatType: "reverse", ease: "linear" }}
-        />
-        <div className="relative z-20 text-white text-center p-12 max-w-2xl">
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-          >
-            <ShieldCheck className="w-24 h-24 mx-auto mb-8 text-primary drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]" />
-            <h1 className="text-6xl font-black mb-6 tracking-tighter font-heading leading-tight">
-              طعم الفخامة <br />
-              <span className="text-primary">الأصلي</span>
-            </h1>
-            <p className="text-2xl text-gray-300 font-light leading-relaxed">
-              سجل دخولك الآن واستمتع بأجود أنواع اللحوم الطازجة تصلك إلى باب بيتك بعناية فائقة.
-            </p>
-          </motion.div>
-        </div>
-      </motion.div>
+      {/* --- Main Content Container (Glass Card with 3D Tilt Effect) --- */}
+      <div className="relative z-10 w-full max-w-5xl flex flex-col lg:flex-row items-center justify-center p-4 lg:p-0 gap-8 lg:gap-20">
 
-      {/* Form Section */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 relative z-10">
+        {/* Left Side: Brand & Hero (Hidden on Mobile, Visible on Desktop) */}
         <motion.div
-          className="w-full max-w-[500px]"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          className="hidden lg:flex flex-col items-start max-w-lg text-left"
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <Card className="border-none shadow-2xl bg-white/95 backdrop-blur-xl lg:bg-white rounded-[2.5rem] overflow-hidden">
-            <CardHeader className="text-center pb-2 pt-10 px-10">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={step}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="flex flex-col items-center"
-                >
-                  {step === "form" && (
-                    <>
-                      <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 lg:hidden">
-                        <ShieldCheck className="h-8 w-8 text-primary" />
-                      </div>
-                      <CardTitle className="text-3xl lg:text-4xl font-black text-gray-900 font-heading mb-2">مرحباً بك 👋</CardTitle>
-                      <CardDescription className="text-base font-medium">سجل دخولك للمتابعة</CardDescription>
-                    </>
-                  )}
-                  {step === "selection" && (
-                    <>
-                      <CardTitle className="text-3xl font-black text-gray-900 font-heading mb-2">تفعيل الحساب</CardTitle>
-                      <CardDescription className="text-base font-medium">أختر وسيلة التحقق المناسبة</CardDescription>
-                    </>
-                  )}
-                  {step === "otp" && (
-                    <>
-                      <CardTitle className="text-3xl font-black text-gray-900 font-heading mb-2">تأكيد الرمز</CardTitle>
-                      <CardDescription className="text-base font-medium">أدخل رمز التحقق المرسل إليك</CardDescription>
-                    </>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </CardHeader>
+          <div className="w-20 h-20 bg-gradient-to-br from-primary to-green-300 rounded-3xl flex items-center justify-center shadow-[0_0_40px_rgba(34,197,94,0.4)] mb-8 transform rotate-3 hover:rotate-6 transition-all duration-500">
+            <ShieldCheck className="w-10 h-10 text-zinc-950" />
+          </div>
+          <h1 className="text-7xl font-black tracking-tighter leading-[0.9] mb-6 font-heading bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-500">
+            مستوى آخر <br /> من الجودة.
+          </h1>
+          <p className="text-xl text-gray-400 font-medium leading-relaxed max-w-md">
+            انضم الآن لنخبة الذواقة. أجود أنواع اللحوم الطازجة والذبائح المختارة بعناية فائقة، تصلك أينما كنت.
+          </p>
 
-            <CardContent className="p-8 lg:p-10">
+          <div className="mt-10 flex items-center gap-4">
+            <div className="flex -space-x-4 space-x-reverse">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="w-12 h-12 rounded-full border-2 border-zinc-950 bg-zinc-800 overflow-hidden">
+                  <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" />
+                </div>
+              ))}
+            </div>
+            <div className="text-sm font-bold text-gray-400">
+              <span className="text-white text-lg block font-black">+5,000</span>
+              عميل سعيد يثق بنا
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Right Side: Interavtive Form Card */}
+        <motion.div
+          className="w-full max-w-[480px] perspective-1000"
+          initial={{ opacity: 0, scale: 0.9, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
+        >
+          <div className="relative bg-zinc-900/60 backdrop-blur-2xl border border-white/10 rounded-[3rem] p-8 lg:p-10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] overflow-hidden group hover:border-white/20 transition-all duration-500">
+            {/* Glossy Reflection Effect */}
+            <div className="absolute -inset-[100%] bg-gradient-to-r from-transparent via-white/5 to-transparent rotate-45 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+
+            <div className="relative z-10">
+              {/* Header */}
+              <div className="text-center mb-8">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={step}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                  >
+                    <h2 className="text-3xl font-black text-white mb-2 font-heading tracking-tight">{
+                      step === 'form' ? 'مرحباً بعودتك' :
+                        step === 'selection' ? 'تفعيل الحساب' : 'التحقق الأمني'
+                    }</h2>
+                    <p className="text-gray-400 font-medium text-sm">{
+                      step === 'form' ? 'سجل دخولك للمتابعة أو أنشئ حساباً جديداً' :
+                        step === 'selection' ? 'اختر الطريقة الأنسب لك لاستلام الرمز' : 'أدخل الرمز المرسل لإكمال العملية'
+                    }</p>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
               <AnimatePresence mode="wait">
                 {step === "form" && (
                   <motion.div
-                    key="step-form"
-                    initial={{ x: 20, opacity: 0 }}
+                    key="form"
+                    initial={{ x: 50, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
-                    exit={{ x: -20, opacity: 0 }}
+                    exit={{ x: -50, opacity: 0 }}
                   >
                     <Tabs defaultValue="login" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-100/80 p-1.5 rounded-2xl h-auto">
+                      <TabsList className="grid w-full grid-cols-2 mb-8 bg-black/40 p-1.5 rounded-2xl h-16 border border-white/5">
                         <TabsTrigger
                           value="login"
-                          className="rounded-xl py-3 font-bold text-base data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md transition-all"
-                        >
-                          تسجيل دخول
-                        </TabsTrigger>
+                          className="rounded-xl h-full font-bold text-base data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:shadow-lg active:scale-95 transition-all duration-300"
+                        >الدخول</TabsTrigger>
                         <TabsTrigger
                           value="register"
-                          className="rounded-xl py-3 font-bold text-base data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md transition-all"
-                        >
-                          حساب جديد
-                        </TabsTrigger>
+                          className="rounded-xl h-full font-bold text-base data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=active]:shadow-lg active:scale-95 transition-all duration-300"
+                        >جديد</TabsTrigger>
                       </TabsList>
 
-                      <TabsContent value="login">
-                        <form
-                          onSubmit={loginForm.handleSubmit((data) => loginMutation.mutate(data))}
-                          className="space-y-6"
-                        >
-                          <div className="space-y-2">
-                            <Label htmlFor="login-email" className="text-sm font-bold text-gray-700">البريد الإلكتروني</Label>
+                      <TabsContent value="login" className="mt-0">
+                        <form onSubmit={loginForm.handleSubmit((data) => loginMutation.mutate(data))} className="space-y-5">
+                          <div className="space-y-2 group">
+                            <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider group-focus-within:text-primary transition-colors">البريد الإلكتروني</Label>
                             <Input
-                              id="login-email"
-                              placeholder="mail@example.com"
-                              className="h-14 bg-gray-50 border-gray-200 focus:bg-white focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-2xl transition-all text-left text-lg px-6"
-                              dir="ltr"
                               {...loginForm.register("email")}
-                              required
+                              dir="ltr"
+                              className="h-14 bg-black/20 border-white/10 text-white placeholder:text-gray-600 rounded-2xl focus:border-primary/50 focus:ring-primary/20 focus:bg-black/40 transition-all text-lg px-5"
+                              placeholder="name@example.com"
                             />
                           </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <Label htmlFor="password" className="text-sm font-bold text-gray-700">كلمة المرور</Label>
-                              <Button variant="link" className="p-0 h-auto text-xs font-bold text-primary hover:text-primary/80" type="button">نسيت كلمة المرور؟</Button>
-                            </div>
+                          <div className="space-y-2 group">
+                            <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider group-focus-within:text-primary transition-colors">كلمة المرور</Label>
                             <Input
-                              id="password"
                               type="password"
-                              placeholder="••••••••"
-                              className="h-14 bg-gray-50 border-gray-200 focus:bg-white focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-2xl transition-all text-lg px-6"
                               {...loginForm.register("password")}
-                              required
+                              className="h-14 bg-black/20 border-white/10 text-white placeholder:text-gray-600 rounded-2xl focus:border-primary/50 focus:ring-primary/20 focus:bg-black/40 transition-all text-lg px-5 tracking-widest"
+                              placeholder="••••••••"
                             />
                           </div>
+
                           <Button
                             type="submit"
-                            className="w-full font-black text-lg h-14 rounded-2xl shadow-xl shadow-primary/25 bg-primary hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 mt-4"
                             disabled={loginMutation.isPending}
+                            className="w-full h-16 rounded-2xl bg-gradient-to-r from-primary to-green-600 hover:from-green-500 hover:to-primary text-black font-black text-xl shadow-[0_0_30px_rgba(34,197,94,0.3)] hover:shadow-[0_0_50px_rgba(34,197,94,0.5)] transition-all duration-300 transform hover:-translate-y-1 active:scale-95 mt-4"
                           >
-                            {loginMutation.isPending ? (
-                              <Loader2 className="ml-2 h-6 w-6 animate-spin" />
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                <span>دخول آمن</span>
-                                <ArrowRight className="h-5 w-5 rotate-180" />
-                              </div>
-                            )}
+                            {loginMutation.isPending ? <Loader2 className="animate-spin w-6 h-6" /> : "دخول الآن"}
                           </Button>
                         </form>
                       </TabsContent>
 
-                      <TabsContent value="register">
-                        <form
-                          onSubmit={registerForm.handleSubmit(handleRegisterSubmit)}
-                          className="space-y-5"
-                        >
-                          <div className="space-y-1.5">
-                            <Label className="text-sm font-bold text-gray-700">اسم المستخدم</Label>
+                      <TabsContent value="register" className="mt-0 space-y-4">
+                        <form onSubmit={registerForm.handleSubmit(handleRegisterSubmit)} className="space-y-4">
+                          <div className="grid grid-cols-1 gap-4">
                             <Input
-                              placeholder="username"
-                              className="h-12 bg-gray-50 border-gray-200 focus:bg-white focus:border-primary/50 rounded-xl px-4"
-                              dir="ltr"
                               {...registerForm.register("username")}
-                              required
+                              dir="ltr"
+                              placeholder="Username"
+                              className="h-12 bg-black/20 border-white/10 text-white rounded-xl focus:border-primary/50"
                             />
-                            {registerForm.formState.errors.username && (
-                              <p className="text-xs text-red-500 font-bold">{registerForm.formState.errors.username.message}</p>
-                            )}
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <Label className="text-sm font-bold text-gray-700">البريد الإلكتروني</Label>
-                            <Input type="email" placeholder="mail@example.com" className="h-12 bg-gray-50 border-gray-200 focus:bg-white focus:border-primary/50 rounded-xl px-4" dir="ltr" {...registerForm.register("email")} required />
-                            {registerForm.formState.errors.email && <p className="text-xs text-red-500 font-bold">{registerForm.formState.errors.email.message}</p>}
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <Label className="text-sm font-bold text-gray-700">رقم الجوال</Label>
+                            <Input
+                              {...registerForm.register("email")}
+                              type="email"
+                              dir="ltr"
+                              placeholder="Email Address"
+                              className="h-12 bg-black/20 border-white/10 text-white rounded-xl focus:border-primary/50"
+                            />
                             <div className="flex gap-2" dir="ltr">
-                              <CountrySelect
-                                value={countryCode}
-                                onChange={setCountryCode}
-                              />
+                              <CountrySelect value={countryCode} onChange={setCountryCode} />
                               <Input
+                                {...registerForm.register("phone")}
                                 type="tel"
                                 placeholder="5xxxxxxxx"
-                                className="h-12 bg-gray-50 border-gray-200 focus:bg-white focus:border-primary/50 rounded-xl flex-1 text-lg font-bold px-4"
-                                {...registerForm.register("phone")}
-                                required
+                                className="h-12 bg-black/20 border-white/10 text-white rounded-xl focus:border-primary/50 text-lg font-bold flex-1"
                               />
                             </div>
-                            {registerForm.formState.errors.phone && <p className="text-xs text-red-500 font-bold">{registerForm.formState.errors.phone.message}</p>}
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <Label className="text-sm font-bold text-gray-700">كلمة المرور</Label>
-                              <Input type="password" className="h-12 bg-gray-50 border-gray-200 focus:bg-white focus:border-primary/50 rounded-xl px-4" {...registerForm.register("password")} required />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-sm font-bold text-gray-700">تأكيد الكلمة</Label>
-                              <Input type="password" className="h-12 bg-gray-50 border-gray-200 focus:bg-white focus:border-primary/50 rounded-xl px-4" {...registerForm.register("confirmPassword")} required />
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input type="password" {...registerForm.register("password")} placeholder="Password" className="h-12 bg-black/20 border-white/10 text-white rounded-xl" />
+                              <Input type="password" {...registerForm.register("confirmPassword")} placeholder="Confirm" className="h-12 bg-black/20 border-white/10 text-white rounded-xl" />
                             </div>
                           </div>
 
-                          {/* Password Strength Meter */}
-                          <div className="space-y-2 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                            <div className="flex justify-between text-xs font-bold mb-1">
-                              <span className="text-gray-500">قوة كلمة المرور</span>
-                              <span className={`${getStrengthColor(passwordStrength).replace('bg-', 'text-')} transition-colors duration-300`}>
-                                {getStrengthText(passwordStrength)}
-                              </span>
-                            </div>
-                            <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                              <motion.div
-                                className={`h-full ${getStrengthColor(passwordStrength)}`}
-                                initial={{ width: 0 }}
-                                animate={{ width: `${passwordStrength}%` }}
-                                transition={{ duration: 0.5 }}
-                              />
-                            </div>
+                          <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden">
+                            <div className={`h-full transition-all duration-500 ${getStrengthColor(passwordStrength)}`} style={{ width: `${passwordStrength}%` }} />
                           </div>
 
                           <Button
                             type="submit"
-                            className="w-full font-black text-lg h-14 rounded-2xl shadow-xl shadow-primary/25 bg-primary hover:bg-primary/90 mt-4 hover:scale-[1.02] active:scale-[0.98] transition-all"
                             disabled={registerMutation.isPending}
+                            className="w-full h-14 rounded-2xl bg-white text-black hover:bg-gray-200 font-bold text-lg shadow-lg transition-all mt-2"
                           >
-                            إنشاء الحساب
+                            {registerMutation.isPending ? <Loader2 className="animate-spin" /> : "متابعة"}
                           </Button>
                         </form>
                       </TabsContent>
@@ -495,141 +437,125 @@ export default function Auth() {
 
                 {step === "selection" && (
                   <motion.div
-                    key="step-selection"
-                    initial={{ x: 50, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    exit={{ x: -20, opacity: 0 }}
-                    className="space-y-4"
+                    key="selection"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 1.2, opacity: 0 }}
+                    className="space-y-4 py-4"
                   >
-                    {[
-                      { id: "gmail", icon: Mail, label: "عبر البريد الإلكتروني (Gmail)", color: "text-red-500", bg: "bg-red-50 border-red-100 hover:border-red-300" },
-                      { id: "telegram", icon: MessageSquare, label: "عبر تيليجرام (Telegram)", color: "text-blue-500", bg: "bg-blue-50 border-blue-100 hover:border-blue-300" }
-                    ].map((method) => (
-                      <button
-                        key={method.id}
-                        onClick={() => handleMethodSelect(method.id as any)}
-                        disabled={registerMutation.isPending}
-                        className={`w-full flex items-center p-6 gap-4 rounded-3xl border-2 transition-all duration-300 hover:shadow-lg group text-right ${method.bg}`}
-                      >
-                        <div className={`w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-sm ${method.color}`}>
-                          <method.icon className="w-7 h-7" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-bold text-lg text-gray-900 mb-1">{method.label}</h4>
-                          <p className="text-xs text-gray-500 font-medium opacity-80">رمز تحقق سريع وآمن</p>
-                        </div>
-                        <div className="w-8 h-8 rounded-full border-2 border-gray-300 group-hover:border-primary group-hover:bg-primary transition-all flex items-center justify-center">
-                          <ArrowRight className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity rotate-180" />
-                        </div>
-                      </button>
-                    ))}
+                    <button
+                      onClick={() => handleMethodSelect("gmail")}
+                      className="w-full group relative overflow-hidden bg-gradient-to-br from-red-500/10 to-red-600/5 hover:from-red-500/20 hover:to-red-600/10 border border-red-500/20 hover:border-red-500/50 p-6 rounded-3xl transition-all duration-300 flex items-center gap-6"
+                    >
+                      <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <Mail className="w-8 h-8 text-red-500" />
+                      </div>
+                      <div className="text-right flex-1">
+                        <h3 className="text-xl font-bold text-white mb-1">عبر الإيميل</h3>
+                        <p className="text-red-200/50 text-xs">رمز يصلك لبريدك الجيميل</p>
+                      </div>
+                      <ArrowRight className="w-6 h-6 text-white/20 group-hover:text-white group-hover:-translate-x-2 transition-all rotate-180" />
+                    </button>
 
-                    <Button variant="ghost" className="w-full font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-xl h-12 mt-4" onClick={() => setStep("form")}>
-                      الرجوع للخلف
-                    </Button>
+                    <button
+                      onClick={() => handleMethodSelect("telegram")}
+                      className="w-full group relative overflow-hidden bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10 border border-blue-500/20 hover:border-blue-500/50 p-6 rounded-3xl transition-all duration-300 flex items-center gap-6"
+                    >
+                      <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <MessageSquare className="w-8 h-8 text-blue-500" />
+                      </div>
+                      <div className="text-right flex-1">
+                        <h3 className="text-xl font-bold text-white mb-1">عبر تيليجرام</h3>
+                        <p className="text-blue-200/50 text-xs">أسرع وسيلة، تفعيل فوري</p>
+                      </div>
+                      <ArrowRight className="w-6 h-6 text-white/20 group-hover:text-white group-hover:-translate-x-2 transition-all rotate-180" />
+                    </button>
+
+                    <button onClick={() => setStep("form")} className="w-full py-4 text-gray-500 font-bold hover:text-white transition-colors">
+                      تراجع
+                    </button>
                   </motion.div>
                 )}
 
                 {step === "otp" && (
                   <motion.div
-                    key="step-otp"
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="space-y-8 py-4"
+                    key="otp"
+                    initial={{ y: 50, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -50, opacity: 0 }}
+                    className="py-10 text-center"
                   >
-                    {otpMethod === 'telegram' ? (
-                      <div className="space-y-6">
-                        <div className="relative overflow-hidden p-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl text-center text-white shadow-xl shadow-blue-500/30">
-                          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
-                          <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl" />
+                    {otpMethod === "telegram" ? (
+                      <div className="space-y-8">
+                        <motion.div
+                          animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
+                          transition={{ duration: 4, repeat: Infinity }}
+                          className="w-24 h-24 mx-auto bg-blue-500 rounded-[2.5rem] flex items-center justify-center shadow-[0_0_50px_rgba(59,130,246,0.5)]"
+                        >
+                          <Send className="w-12 h-12 text-white" />
+                        </motion.div>
 
-                          <div className="relative z-10 flex flex-col items-center">
-                            <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6">
-                              <Send className="h-10 w-10 text-white" />
-                            </div>
-                            <h3 className="font-black text-2xl mb-2">تأكيد تيليجرام</h3>
-                            <p className="text-blue-100 text-sm mb-6 max-w-[200px] leading-relaxed opacity-90">
-                              اضغط بالأسفل للانتقال للمحادثة وشارك رقمك ليتم التفعيل فوراً
-                            </p>
-
-                            {telegramLink ? (
-                              <a
-                                href={telegramLink}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="w-full py-4 bg-white text-blue-600 rounded-xl font-bold hover:bg-blue-50 transition-colors shadow-lg flex items-center justify-center gap-2 group"
-                              >
-                                <span>فتح تيليجرام</span>
-                                <Send className="h-4 w-4 rotate-180 group-hover:-translate-x-1 transition-transform" />
-                              </a>
-                            ) : (
-                              <div className="w-full py-4 bg-white/20 rounded-xl animate-pulse">جاري التحضير...</div>
-                            )}
-                          </div>
+                        <div>
+                          <h3 className="text-2xl font-bold text-white mb-2">افتح تيليجرام الآن</h3>
+                          <p className="text-gray-400">بانتظار تأكيدك... العملية تتم تلقائياً</p>
                         </div>
 
-                        <div className="flex items-center justify-center gap-2 text-sm text-gray-500 animate-pulse font-medium bg-gray-50 py-3 rounded-full">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>بانتظار التأكيد من التطبيق...</span>
+                        {telegramLink && (
+                          <a href={telegramLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-blue-600 rounded-2xl font-black text-lg hover:bg-blue-50 transition-colors">
+                            اضغط هنا للفتح
+                            <Send className="w-5 h-5 rotate-180" />
+                          </a>
+                        )}
+
+                        <div className="flex items-center justify-center gap-2 text-sm text-gray-500 animate-pulse">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          جاري التحقق...
                         </div>
                       </div>
                     ) : (
                       <div className="space-y-8">
                         <div className="flex justify-center gap-3" dir="ltr">
                           {[0, 1, 2, 3, 4, 5].map((i) => (
-                            <motion.div
+                            <motion.input
                               key={i}
                               initial={{ y: 20, opacity: 0 }}
                               animate={{ y: 0, opacity: 1 }}
                               transition={{ delay: i * 0.1 }}
-                            >
-                              <Input
-                                className="h-14 w-12 sm:h-16 sm:w-14 text-center text-3xl font-black rounded-2xl border-2 border-gray-100 bg-gray-50 focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all p-0 shadow-sm"
-                                maxLength={1}
-                                value={otpValue[i] || ""}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  if (/^\d*$/.test(val)) {
-                                    const newOtp = otpValue.split("");
-                                    newOtp[i] = val.slice(-1);
-                                    setOtpValue(newOtp.join(""));
-                                    if (val && i < 5) {
-                                      const next = e.target.parentElement?.nextElementSibling?.querySelector('input') as HTMLInputElement;
-                                      if (next) next.focus();
-                                    }
+                              className="w-14 h-16 bg-black/30 border border-white/10 rounded-2xl text-center text-3xl font-black text-white focus:border-primary focus:bg-primary/10 transition-all outline-none"
+                              maxLength={1}
+                              value={otpValue[i] || ""}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (/^\d*$/.test(val)) {
+                                  const newOtp = otpValue.split("");
+                                  newOtp[i] = val.slice(-1);
+                                  setOtpValue(newOtp.join(""));
+                                  if (val && i < 5) {
+                                    const next = e.target.nextElementSibling as HTMLInputElement;
+                                    if (next) next.focus();
                                   }
-                                }}
-                              />
-                            </motion.div>
+                                }
+                              }}
+                            />
                           ))}
                         </div>
-
                         <Button
-                          className="w-full h-14 text-lg font-black rounded-2xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 transition-all hover:scale-[1.02]"
-                          disabled={otpValue.length !== 6 || verifyOtpMutation.isPending}
                           onClick={verifyOtp}
+                          disabled={otpValue.length !== 6 || verifyOtpMutation.isPending}
+                          className="w-full h-16 rounded-2xl bg-primary hover:bg-green-400 text-black font-black text-xl shadow-[0_0_30px_rgba(34,197,94,0.3)] transition-all"
                         >
-                          {verifyOtpMutation.isPending ? (
-                            <Loader2 className="h-6 w-6 animate-spin" />
-                          ) : (
-                            <>
-                              <CheckCircle2 className="ml-2 h-6 w-6" />
-                              تأكيد الرمز
-                            </>
-                          )}
+                          {verifyOtpMutation.isPending ? <Loader2 className="animate-spin" /> : "تأكيد الرمز"}
                         </Button>
                       </div>
                     )}
-
-                    <Button variant="ghost" className="w-full font-bold text-gray-400 hover:text-gray-900" onClick={() => setStep("selection")}>
-                      تغيير طريقة الاستلام
-                    </Button>
+                    <button onClick={() => setStep("selection")} className="mt-8 text-gray-500 hover:text-white transition-colors font-medium">
+                      تغيير الطريقة
+                    </button>
                   </motion.div>
                 )}
               </AnimatePresence>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
       </div>
     </div>
