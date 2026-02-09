@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, ShoppingCart, User, ShieldCheck } from "lucide-react";
+import { Home, ShoppingBag, ShoppingCart, User, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/lib/cart-context";
@@ -17,9 +17,9 @@ export function BottomNav() {
     ? { href: user.role === 'admin' ? '/admin' : `/${user.role}`, icon: ShieldCheck, label: "محطتي", badge: 0 }
     : null;
 
-  // Removed Products - keeping only essential navigation
   const finalNavItems = [
     { href: "/", icon: Home, label: "الرئيسي", badge: 0 },
+    { href: "/products", icon: ShoppingBag, label: "المنتجات", badge: 0 },
     ...(staffLink ? [staffLink] : []),
     { href: "/cart", icon: ShoppingCart, label: "السلة", badge: items.length },
     { href: "/profile", icon: User, label: "حسابي", badge: 0 },
@@ -39,98 +39,58 @@ export function BottomNav() {
 
         {/* Navigation Items Container */}
         <div className="relative flex items-center justify-around h-[4.5rem]">
-          {finalNavItems.map((item, index) => {
+          {finalNavItems.map((item) => {
             const isActive = location === item.href;
 
             return (
               <Link key={item.href} href={item.href}>
                 <motion.a
-                  className="flex flex-col items-center justify-center w-full h-full gap-1.5 cursor-pointer group relative px-4"
-                  whileTap={{ scale: 0.92 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  className="flex flex-col items-center justify-center w-full h-full gap-1.5 cursor-pointer group relative px-3"
+                  whileTap={{ scale: 0.9 }}
                 >
-                  {/* Active Background Bubble with Glow */}
-                  <AnimatePresence>
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeNavBubble"
-                        className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 rounded-[1.75rem] -z-10"
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.8, opacity: 0 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 350,
-                          damping: 25,
-                          opacity: { duration: 0.2 }
-                        }}
-                      >
-                        {/* Subtle Glow Ring */}
-                        <div className="absolute inset-0 rounded-[1.75rem] bg-gradient-to-br from-primary/20 to-transparent blur-sm" />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  {/* Active Background Bubble */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeNavBubble"
+                      className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 rounded-[1.75rem]"
+                      transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                    >
+                      <div className="absolute inset-0 rounded-[1.75rem] bg-gradient-to-br from-primary/20 to-transparent blur-sm" />
+                    </motion.div>
+                  )}
 
-                  {/* Icon Container with Advanced Animation */}
+                  {/* Icon Container */}
                   <motion.div
                     className={`
-                      relative h-11 w-11 flex items-center justify-center rounded-[1.25rem]
+                      relative h-11 w-11 flex items-center justify-center rounded-[1.25rem] transition-all duration-300
                       ${isActive
                         ? 'bg-primary text-white shadow-lg shadow-primary/40'
                         : 'bg-gray-50/50 text-gray-400 group-hover:bg-gray-100/70'
                       }
                     `}
                     animate={{
-                      scale: isActive ? [1, 1.1, 1] : 1,
-                      rotate: isActive ? [0, -5, 5, 0] : 0,
+                      scale: isActive ? 1.1 : 1,
                     }}
-                    transition={{
-                      scale: { duration: 0.4, ease: "easeInOut" },
-                      rotate: { duration: 0.5, ease: "easeInOut" }
-                    }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   >
-                    {/* Icon with Bounce Animation */}
-                    <motion.div
-                      animate={{
-                        y: isActive ? [0, -3, 0] : 0,
-                      }}
-                      transition={{
-                        duration: 0.6,
-                        ease: "easeOut",
-                        delay: 0.1
-                      }}
-                    >
-                      <item.icon
-                        className="h-5 w-5"
-                        strokeWidth={isActive ? 2.8 : 2.2}
-                      />
-                    </motion.div>
+                    <item.icon
+                      className="h-5 w-5"
+                      strokeWidth={isActive ? 2.8 : 2.2}
+                    />
 
-                    {/* Badge with Pulse Animation */}
-                    <AnimatePresence>
-                      {item.badge && item.badge > 0 && (
-                        <motion.span
-                          className="absolute -top-1.5 -right-1.5 z-20 h-5 w-5 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full ring-2 ring-white font-black shadow-lg"
-                          initial={{ scale: 0 }}
-                          animate={{
-                            scale: [1, 1.2, 1],
-                          }}
-                          exit={{ scale: 0 }}
-                          transition={{
-                            scale: {
-                              repeat: Infinity,
-                              duration: 2,
-                              ease: "easeInOut"
-                            }
-                          }}
-                        >
-                          {item.badge}
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
+                    {/* Badge */}
+                    {item.badge > 0 && (
+                      <motion.span
+                        className="absolute -top-1.5 -right-1.5 z-20 h-5 w-5 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full ring-2 ring-white font-black shadow-lg"
+                        animate={{ scale: [1, 1.15, 1] }}
+                        transition={{ repeat: Infinity, duration: 2 }}
+                      >
+                        {item.badge}
+                      </motion.span>
+                    )}
                   </motion.div>
 
-                  {/* Label with Smooth Fade & Slide */}
+                  {/* Label */}
                   <motion.span
                     className={`
                       text-[10px] font-extrabold tracking-tight
@@ -138,29 +98,23 @@ export function BottomNav() {
                     `}
                     animate={{
                       opacity: isActive ? 1 : 0.7,
-                      y: isActive ? 0 : 2,
                       scale: isActive ? 1 : 0.95
                     }}
-                    transition={{
-                      duration: 0.3,
-                      ease: "easeOut"
-                    }}
+                    transition={{ duration: 0.2 }}
                   >
                     {item.label}
                   </motion.span>
 
-                  {/* Bottom Indicator Line */}
-                  <AnimatePresence>
-                    {isActive && (
-                      <motion.div
-                        className="absolute -bottom-1 left-1/2 w-1 h-1 bg-primary rounded-full"
-                        initial={{ scale: 0, x: "-50%" }}
-                        animate={{ scale: 1, x: "-50%" }}
-                        exit={{ scale: 0, x: "-50%" }}
-                        transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                      />
-                    )}
-                  </AnimatePresence>
+                  {/* Bottom Indicator */}
+                  {isActive && (
+                    <motion.div
+                      className="absolute -bottom-1 left-1/2 w-1 h-1 bg-primary rounded-full"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      style={{ x: "-50%" }}
+                      transition={{ type: "spring", stiffness: 400 }}
+                    />
+                  )}
                 </motion.a>
               </Link>
             );
