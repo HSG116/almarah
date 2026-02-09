@@ -156,11 +156,11 @@ export function ProductCard({ product, relatedProducts = [], showNavigation = fa
               <div className="bg-white rounded-t-[1.5rem] md:rounded-t-[2.5rem] p-3 md:p-6 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] text-center border-x border-t border-gray-50 h-[140px] md:h-auto flex flex-col justify-between">
                 <div>
                   <h3 className="font-bold text-sm md:text-lg text-gray-800 mb-1 group-hover:text-green-700 transition-colors line-clamp-1">{activeProduct.name}</h3>
-                  <div className="flex flex-col items-center gap-0.5 md:gap-1">
-                    <span className="text-lg md:text-2xl font-black text-gray-900 flex items-center gap-1">
+                  <div className="flex items-center justify-center gap-1">
+                    <span className="text-lg md:text-2xl font-black text-gray-900">
                       {activeProduct.price.toFixed(0)}
-                      <img src="/images/currency-icon.png" className="h-4 md:h-5 w-auto opacity-80" alt="ر.س" />
                     </span>
+                    <img src="/images/currency-icon.png" className="h-4 md:h-5 w-auto opacity-80" alt="ر.س" />
                     <span className="text-[10px] md:text-xs font-medium text-gray-500">
                       /{activeProduct.unit}
                     </span>
