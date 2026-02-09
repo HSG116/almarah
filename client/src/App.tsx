@@ -71,8 +71,12 @@ function Router() {
     }
 
     // Case C: Customer
-    // Customers cannot access /admin or /staff routes
     else if (role === 'customer') {
+      if (location === '/auth') {
+        setLocation('/');
+        return;
+      }
+
       const isRestricted =
         location.startsWith('/admin') ||
         location.startsWith('/staff') ||
