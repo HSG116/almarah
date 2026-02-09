@@ -27,6 +27,21 @@ export default function Auth() {
   const [otpValue, setOtpValue] = useState("");
   const { toast } = useToast();
 
+  // Redirect Logic: Immediately send staff to their dashboards upon login
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'admin' || user.isAdmin) {
+        setLocation("/admin");
+      } else if (user.role && user.role !== 'customer') {
+        // Staff members (butcher, delivery, etc.)
+        setLocation(`/${user.role}`);
+      } else {
+        // Customers
+        setLocation("/");
+      }
+    }
+  }, [user, setLocation]);
+
   const loginForm = useForm<{ email: string; password: string }>({
     defaultValues: {
       email: "",
