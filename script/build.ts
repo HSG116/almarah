@@ -1,6 +1,7 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
-import { rm, readFile } from "fs/promises";
+import { rm, readFile, cp } from "fs/promises";
+import path from "path";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
@@ -59,6 +60,16 @@ async function buildAll() {
     external: externals,
     logLevel: "info",
   });
+
+  // After building, ensure everything in dist/public is also available in dist/
+  // for platforms like Vercel that default to 'dist' as the output directory.
+  // We keep dist/public for compatibility with the server code.
+  try {
+    console.log("Syncing build artifacts for hosting compatibility...");
+    await cp("dist/public", "dist", { recursive: true });
+  } catch (err) {
+    console.warn("Artifact sync warning:", err);
+  }
 }
 
 buildAll().catch((err) => {

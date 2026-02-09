@@ -116,7 +116,7 @@ function App() {
       <AuthProvider>
         <CartProvider>
           <TooltipProvider>
-            <WouterRouter base={import.meta.env.BASE_URL}>
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "") || "/"}>
               <Toaster />
               <NotificationManager />
               <Router />

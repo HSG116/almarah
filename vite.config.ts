@@ -9,7 +9,7 @@ import { metaImagesPlugin } from "./vite-plugin-meta-images";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  base: process.env.GITHUB_ACTIONS ? "/almarah/" : "/",
+  base: process.env.GITHUB_ACTIONS ? "/almarah" : "/",
   plugins: [
     react(),
     runtimeErrorOverlay(),
