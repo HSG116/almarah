@@ -308,29 +308,29 @@ export function ButcherTerminal({ orders, staffMembers, products, onPrintRequest
   }, [staffMembers, user]);
 
   const activePreps = useMemo(() => {
-    // 🔍 منطق محسّن:
-    // 1. إذا كان الموظف معروفاً: اعرض مهامه + المهام العامة
-    // 2. إذا لم يكن معروفاً (مشكلة ربط): اعرض المهام العامة فقط (Pending Broadcast)
-
-    // الطلبات العامة (التي لم يستلمها أحد)
-    const broadcast = orders.filter(o => o.status === 'pending' && !o.butcher_staff_id);
+    // منطق التركيز: إذا كان الموظف يعمل على طلبات، نعرض له مهامه فقط لإزالة التشتت
+    // "اريدك تخلي... الطلبات الثانية تختفي كاملة" - تم تطبيق هذا المنطق هنا أيضاً لضمان الجودة
+    const broadcast = orders.filter(o => o.status === 'pending' && !o.butcher_staff_id)
+      .sort((a, b) => new Date(a.created_at || a.createdAt).getTime() - new Date(b.created_at || b.createdAt).getTime());
 
     if (!currentStaff) {
-      // إذا لم يتم العثور على الموظف، اعرض فقط الطلبات المتاحة للجميع
+      // إذا لم يتم العثور على الموظف (مشكلة ربط)، اعرض الطلبات العامة فقط
       return broadcast;
     }
 
     // الطلبات الخاصة بي (جاري التجهيز أو معلقة ومسندة لي)
-    // ⚠️ تمت إزالة 'ready' لكي يختفي الطلب فور تكتمل التجهيز
     const myAssigned = orders.filter(o =>
       o.butcher_staff_id === currentStaff.id &&
       (o.status === 'preparing' || o.status === 'pending')
-    );
+    ).sort((a, b) => new Date(a.created_at || a.createdAt).getTime() - new Date(b.created_at || b.createdAt).getTime());
 
-    // دمج القوائم وإزالة التكرار
-    const combined = [...myAssigned, ...broadcast];
-    const uniqueIds = new Set(combined.map(o => o.id));
-    return Array.from(uniqueIds).map(id => combined.find(o => o.id === id));
+    // إذا كان لدي مهام مستلمة، نركز على المهمة الأقدم فقط (Focus Mode)
+    if (myAssigned.length > 0) {
+      return [myAssigned[0]];
+    }
+
+    // إذا لم أكن مشغولاً، أعرض قائمة الانتظار العامة مرتبة من الأقدم
+    return broadcast;
   }, [orders, currentStaff]);
 
   // FIXME: Debug panel - remove after fixing
@@ -856,7 +856,7 @@ function InventoryUpdateForm({ products, onUpdate, isPending }: { products: any[
 }
 
 // 2. Delivery Driver Portal
-export function DeliveryPortal({ orders, staffMembers, onPrintRequest }: { orders: any[], staffMembers: any[], onPrintRequest: (o: any) => void }) {
+export function DeliveryPortal({ orders, staffMembers, deliveryZones, onPrintRequest }: { orders: any[], staffMembers: any[], deliveryZones: any[], onPrintRequest: (o: any) => void }) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -875,20 +875,27 @@ export function DeliveryPortal({ orders, staffMembers, onPrintRequest }: { order
     orders.filter(o => o.status === 'ready' && !o.driver_staff_id),
     [orders]);
 
-  // Are we currently delivering something?
-  const isBusy = useMemo(() =>
-    myAssignedOrders.some(o => o.status === 'shipping' || o.status === 'arrived'),
+  // Are we currently in the middle of a physical delivery?
+  // We check for 'shipping' (on the way) or 'arrived' (at customer door).
+  const activeDelivery = useMemo(() =>
+    myAssignedOrders.find(o => o.status === 'shipping' || o.status === 'arrived'),
     [myAssignedOrders]);
 
-  // Final list: what I'm already doing + what's available (if I'm not busy)
+  // Final list logic:
+  // 1. If I have an active delivery in progress (picked it up), hide everything else.
+  // 2. Otherwise, show all available orders (Assigned to me + Public broadcast).
   const displayedOrders = useMemo(() => {
-    if (isBusy) return myAssignedOrders;
+    if (activeDelivery) {
+      return [activeDelivery];
+    }
 
-    // Combine unique IDs
+    // Combine My Assigned (Ready) + Public Broadcast (Ready)
     const combined = [...myAssignedOrders, ...broadcastOrders];
     const uniqueIds = new Set(combined.map(o => o.id));
-    return Array.from(uniqueIds).map(id => combined.find(o => o.id === id));
-  }, [myAssignedOrders, broadcastOrders, isBusy]);
+    return Array.from(uniqueIds)
+      .map(id => combined.find(o => o.id === id))
+      .sort((a, b) => new Date(a.created_at || a.createdAt).getTime() - new Date(b.created_at || b.createdAt).getTime());
+  }, [myAssignedOrders, broadcastOrders, activeDelivery]);
 
   const deliveryHistory = useMemo(() =>
     orders.filter(o => o.driver_staff_id === currentStaff?.id && (o.status === 'completed' || o.status === 'cancelled')),
@@ -905,10 +912,10 @@ export function DeliveryPortal({ orders, staffMembers, onPrintRequest }: { order
       new Date(o.updated_at) >= today
     );
 
-    const revenue = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-    // Assuming 15% commission for drivers
-    return Math.round(revenue * 0.15);
-  }, [orders, currentStaff]);
+    // Correct Earnings Calculation: Sum of (Delivery Fee * Driver Commission %)
+    // "اذا كان رسوم التوصيل 10 للمنطقة وكمان العمولة تبعت السائق 80% يعني ياخد 8"
+    return todayOrders.reduce((sum, o) => sum + (o.driverCommissionAmount || 0), 0);
+  }, [todayOrders]);
 
   const weekEarnings = useMemo(() => {
     const weekAgo = new Date();
@@ -995,7 +1002,8 @@ export function DeliveryPortal({ orders, staffMembers, onPrintRequest }: { order
         .from('orders')
         .update({
           driver_staff_id: currentStaff.id,
-          status: 'shipping'
+          // We keep the status as 'ready' so the driver can see all tasks 
+          // before deciding which one to "Confirm Pickup" (shipping) for.
         })
         .eq('id', orderId)
         .is('driver_staff_id', null)
@@ -1798,10 +1806,11 @@ export function AccountantPortal() {
 
       const ordersWithCommission = staffOrders.map(order => {
         const zone = deliveryZones.find(z => z.id === order.zone_id);
-        // User requested: driver commission = delivery fee from the map zones
-        const commission = zone?.fee || zone?.driver_commission || 0;
+        const fee = order.delivery_fee || order.deliveryFee || zone?.fee || 0;
+        const commissionRate = zone?.driver_commission || 0; // percentage , e.g. 80
+        const commission = fee * (commissionRate / 100);
         commissions += commission;
-        return { ...order, zone_name: zone?.name || 'غير محدد', commission, delivery_fee: zone?.fee || 0 };
+        return { ...order, zone_name: zone?.name || 'غير محدد', commission, delivery_fee: fee };
       });
 
       const totalEarnings = baseSalary + commissions + (staff.wallet_balance || 0); // wallet_balance can be bonuses/adjustments
@@ -2832,23 +2841,32 @@ export default function StaffDashboard({ forcedRole }: { forcedRole?: string }) 
       // Map to ensure consistent shape and add delivery fee fallback
       return (data || []).map(o => {
         let feeFromZone = 0;
+        let commissionRate = 0;
 
-        // Simple zone match if coordinates exist
-        if (o.gps_lat && o.gps_lng && zones.length > 0) {
-          const matchedZone = zones.find(z => {
+        // Find the zone to get both fee and its commission percentage
+        const matchedZone = zones.find(z => {
+          if (o.zone_id && z.id === o.zone_id) return true;
+          if (o.gps_lat && o.gps_lng) {
             try {
               const poly = typeof z.coordinates === 'string' ? JSON.parse(z.coordinates) : z.coordinates;
               return isPointInPolygon([o.gps_lat, o.gps_lng], poly);
             } catch (e) { return false; }
-          });
-          if (matchedZone) feeFromZone = matchedZone.fee;
+          }
+          return false;
+        });
+
+        if (matchedZone) {
+          feeFromZone = matchedZone.fee || 0;
+          commissionRate = matchedZone.driverCommission || 0;
         }
 
-        const finalDelivery = feeFromZone > 0 ? feeFromZone : defaultFee;
+        const finalDelivery = o.delivery_fee || feeFromZone || defaultFee;
+        const driverCommissionAmount = finalDelivery * (commissionRate / 100);
 
         return {
           ...o,
           deliveryFee: finalDelivery,
+          driverCommissionAmount,
           // Normalize fields for frontend consistency
           customerName: o.customer_name,
           customerPhone: o.customer_phone
@@ -3006,7 +3024,7 @@ export default function StaffDashboard({ forcedRole }: { forcedRole?: string }) 
           {(effectiveRole === 'admin' || effectiveRole === 'delivery') && (
             <section className="space-y-6">
               <h2 className="text-2xl font-black text-slate-900 pr-4 border-r-4 border-emerald-600">قطاع التوصيل والخدمات اللوجستية</h2>
-              <DeliveryPortal orders={orders} staffMembers={staffMembers} onPrintRequest={openInvoiceChoice} />
+              <DeliveryPortal orders={orders} staffMembers={staffMembers} deliveryZones={zones} onPrintRequest={openInvoiceChoice} />
             </section>
           )}
 

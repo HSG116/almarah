@@ -33,13 +33,12 @@ export default function Auth() {
       const confinedRoles = ['delivery', 'butcher', 'accountant', 'support', 'designer', 'manager'];
 
       // 1. Check for specific confined staff roles FIRST
-      // This ensures a 'butcher' goes to /butcher even if they accidentally have isAdmin=true
       if (user.role && confinedRoles.includes(user.role)) {
         setLocation(`/${user.role}`);
       }
-      // 2. Then check for Admin
+      // 2. Top Admin (Freedom): Default to store home on login per request "ما تنقله"
       else if (user.role === 'admin' || user.isAdmin) {
-        setLocation("/admin");
+        setLocation("/");
       }
       // 3. Default to Customer Home
       else {

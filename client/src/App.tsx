@@ -45,34 +45,32 @@ function Router() {
 
     // 1. Strictly Confined Staff Roles
     // These roles are NOT allowed to navigate anywhere except their specific dashboard
-    const confinedRoles = ['delivery', 'butcher', 'accountant', 'support', 'designer', 'manager'];
-
     const role = user.role || 'customer';
-    const isConfinedStaff = confinedRoles.includes(role);
     const isAdmin = role === 'admin' || user.isAdmin === true;
+    const confinedRoles = ['delivery', 'butcher', 'accountant', 'support', 'designer', 'manager'];
+    const isConfinedStaff = confinedRoles.includes(role);
 
-    // Case A: Confined Staff (e.g. Butcher, Delivery)
-    // STRICT: Even if they have admin flag, if their role is confined, they are confined.
-    if (isConfinedStaff) {
-      const allowedPath = `/${role}`;
-      // Allow exact match or sub-paths of their role
-      if (!location.startsWith(allowedPath)) {
-        // Prevent access to Admin, Home, or other Staff pages
-        // Redirect Forcefully to their Dashboard
-        setLocation(allowedPath);
-      }
-    }
-
-    // Case B: Admin
-    // If Admin is on a customer-only page (like auth), redirect to dashboard
-    else if (isAdmin) {
+    // 1. Top Admin Logic (The only one allowed to browse store + admin areas)
+    if (isAdmin) {
+      // Just redirect from /auth, otherwise let them roam freely (Home, Products, Admin, etc.)
       if (location === '/auth') {
         setLocation('/admin');
       }
+      return;
     }
 
-    // Case C: Customer
-    else if (role === 'customer') {
+    // 2. Confined Staff Logic (Trapped in their specific role dashboards)
+    if (isConfinedStaff) {
+      const allowedPath = `/${role}`;
+      // STRICT: If they are not in their allowed staff path, kick them back to it
+      if (!location.startsWith(allowedPath)) {
+        setLocation(allowedPath);
+      }
+      return;
+    }
+
+    // 3. Customer Logic
+    if (role === 'customer') {
       if (location === '/auth') {
         setLocation('/');
         return;
