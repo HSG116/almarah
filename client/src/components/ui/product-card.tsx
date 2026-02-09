@@ -159,7 +159,7 @@ export function ProductCard({ product, relatedProducts = [], showNavigation = fa
                   <div className="flex flex-col items-center gap-0.5 md:gap-1">
                     <span className="text-lg md:text-2xl font-black text-gray-900 flex items-center gap-1">
                       {activeProduct.price.toFixed(0)}
-                      <span className="text-xs md:text-sm text-gray-500 font-normal">ر.س</span>
+                      <img src="/images/currency-icon.png" className="h-4 md:h-5 w-auto opacity-80" alt="ر.س" />
                     </span>
                     <span className="text-[10px] md:text-xs font-medium text-gray-500">
                       /{activeProduct.unit}
@@ -368,8 +368,9 @@ export function ProductCard({ product, relatedProducts = [], showNavigation = fa
                       onClick={handleAddToCart}
                     >
                       <span>أضف للسلة</span>
-                      <div className="bg-white/20 px-3 py-1 rounded-lg text-sm md:text-base">
-                        {(activeProduct.price * quantity).toFixed(0)} ر.س
+                      <div className="bg-white/20 px-3 py-1 rounded-lg text-sm md:text-base flex items-center gap-1">
+                        {(activeProduct.price * quantity).toFixed(0)}
+                        <img src="/images/currency-icon.png" className="h-4 w-auto brightness-0 invert" alt="ر.س" />
                       </div>
                     </Button>
 
