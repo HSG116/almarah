@@ -286,40 +286,41 @@ export default function Auth() {
         {/* Desktop Layout: 2 Columns (Hero Right, Form Left) */}
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center w-full">
 
-          {/* 1. Hero Section (Right Side in RTL) */}
+          {/* 1. Hero Section (Right Side in RTL) - Polished Alignment */}
           <motion.div
-            className="hidden lg:flex flex-col items-start lg:items-start text-right w-full order-last lg:order-first"
+            className="hidden lg:flex flex-col items-start text-right w-full order-last lg:order-first"
             dir="rtl"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            {/* Header: Logo and Title Horizontal row */}
-            <div className="flex flex-row items-center gap-6 mb-8 w-full">
+            {/* Header: Logo and Title Horizontal row - STRICT RIGHT ALIGNMENT */}
+            <div className="flex flex-row items-center justify-start gap-5 mb-6 w-full select-none">
               {/* Logo */}
               <div className="relative shrink-0">
-                <div className="absolute -inset-6 bg-red-500/10 rounded-full blur-[40px]" />
-                <ShieldCheck className="w-24 h-24 lg:w-32 lg:h-32 text-[#B91C1C] relative z-10 drop-shadow-2xl" />
+                <ShieldCheck className="w-20 h-20 lg:w-24 lg:h-24 text-[#B91C1C] drop-shadow-xl" />
               </div>
 
               {/* Title (Single Line) */}
-              <h1 className="text-6xl lg:text-7xl font-black text-zinc-900 leading-none tracking-tighter shadow-red-500/20 whitespace-nowrap pt-4">
-                الطعم <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#B91C1C] to-red-600">الأصيل.</span>
+              <h1 className="text-6xl lg:text-7xl font-black text-zinc-900 leading-none tracking-tight pt-3">
+                الطعم <span className="text-[#B91C1C]">الأصيل.</span>
               </h1>
             </div>
 
-            <p className="text-lg lg:text-2xl text-gray-500 font-medium leading-relaxed max-w-lg text-right pr-2">
+            {/* Description */}
+            <p className="text-xl text-gray-500 font-bold leading-relaxed max-w-lg text-right mb-8 pr-1">
               نقدم لك أفضل تجربة شرائية للحوم الطازجة. <br /> جودة تليق بك وبأحبابك.
             </p>
 
-            <div className="mt-10 flex gap-4 w-full justify-start pr-2">
-              <div className="px-6 py-4 lg:px-8 lg:py-4 bg-white rounded-3xl shadow-sm border border-red-50 flex items-center gap-4 hover:shadow-md transition-shadow group cursor-default">
-                <div className="w-3 h-3 lg:w-4 lg:h-4 bg-green-500 rounded-full animate-pulse group-hover:scale-125 transition-transform" />
-                <span className="font-black text-gray-700 text-base lg:text-lg">توصيل اليوم</span>
+            {/* USP Buttons */}
+            <div className="flex gap-4 w-full justify-start pr-1">
+              <div className="px-6 py-3 bg-white rounded-2xl shadow-sm border border-red-50 flex items-center gap-3 hover:shadow-md transition-all group cursor-default">
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse group-hover:scale-110 transition-transform" />
+                <span className="font-extrabold text-gray-700 text-base">توصيل اليوم</span>
               </div>
-              <div className="px-6 py-4 lg:px-8 lg:py-4 bg-white rounded-3xl shadow-sm border border-red-50 flex items-center gap-4 hover:shadow-md transition-shadow group cursor-default">
-                <div className="w-3 h-3 lg:w-4 lg:h-4 bg-red-500 rounded-full animate-pulse group-hover:scale-125 transition-transform" />
-                <span className="font-black text-gray-700 text-base lg:text-lg">ذبح يومي</span>
+              <div className="px-6 py-3 bg-white rounded-2xl shadow-sm border border-red-50 flex items-center gap-3 hover:shadow-md transition-all group cursor-default">
+                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse group-hover:scale-110 transition-transform" />
+                <span className="font-extrabold text-gray-700 text-base">ذبح يومي</span>
               </div>
             </div>
           </motion.div>
