@@ -52,7 +52,8 @@ function Router() {
     const isAdmin = role === 'admin' || user.isAdmin === true;
 
     // Case A: Confined Staff (e.g. Butcher, Delivery)
-    if (isConfinedStaff && !isAdmin) {
+    // STRICT: Even if they have admin flag, if their role is confined, they are confined.
+    if (isConfinedStaff) {
       const allowedPath = `/${role}`;
       // Allow exact match or sub-paths of their role
       if (!location.startsWith(allowedPath)) {
