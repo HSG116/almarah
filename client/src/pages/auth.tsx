@@ -249,7 +249,7 @@ export default function Auth() {
     }
   };
 
-  // Strong "Brand Red" Theme (Clean, Modern, Powerful)
+  // Strong "Brand Red" Theme (Clean, Modern, Powerful) - Layout Fixed (Form Right, Hero Left)
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#FAFAFA] font-sans overflow-hidden relative selection:bg-red-500/30 text-zinc-900">
       <Navbar />
@@ -272,53 +272,22 @@ export default function Auth() {
         />
       </div>
 
-      <div className="relative z-10 w-full max-w-7xl flex flex-col lg:flex-row items-center justify-center p-4 px-4 lg:px-20 gap-8 lg:gap-32">
+      <div className="relative z-10 w-full max-w-7xl flex flex-col lg:flex-row-reverse items-center justify-center p-4 px-4 lg:px-20 gap-8 lg:gap-24">
 
-        {/* Mobile Header Logo (Visible only on mobile) - MOVED OUTSIDE CARD TO BE FIRST ELEMENT */}
-        <div className="lg:hidden flex flex-col items-center gap-2 mb-2 w-full">
-          <div className="w-16 h-16 bg-gradient-to-br from-red-50 to-white rounded-2xl flex items-center justify-center shadow-lg shadow-red-900/5 border border-red-100">
-            <ShieldCheck className="w-8 h-8 text-[#B91C1C]" />
+        {/* Mobile Header Logo (Visible only on mobile) */}
+        <div className="lg:hidden flex flex-col items-center gap-2 mb-4 w-full">
+          <div className="w-20 h-20 bg-gradient-to-br from-red-50 to-white rounded-2xl flex items-center justify-center shadow-lg shadow-red-900/5 border border-red-100">
+            <ShieldCheck className="w-10 h-10 text-[#B91C1C]" />
           </div>
-          <h1 className="text-2xl font-black text-zinc-900 tracking-tight">الـمـلـحـمـة</h1>
-          <p className="text-xs font-bold text-gray-400">جودة تستحق الثقة</p>
+          <h1 className="text-3xl font-black text-zinc-900 tracking-tight mt-2">الـمـلـحـمـة</h1>
+          <p className="text-sm font-bold text-gray-400">جودة تستحق الثقة</p>
         </div>
 
-        {/* Hero Section (Hidden on Mobile, Visible on Desktop) - NOW FIRST IN FLEX ROW (Left in LTR) logic, but visually depends on direction */}
+        {/* 1. Interactive Form Card (Right Side in RTL) */}
         <motion.div
-          className="hidden lg:flex flex-col items-center lg:items-end text-right max-w-xl"
-          initial={{ opacity: 0, x: 50 }}
+          className="w-full max-w-[450px] relative z-20"
+          initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
-          <div className="relative mb-8">
-            <div className="absolute -inset-10 bg-red-500/10 rounded-full blur-[60px]" />
-            <ShieldCheck className="w-48 h-48 text-[#B91C1C] relative z-10 drop-shadow-2xl" />
-          </div>
-
-          <h1 className="text-7xl font-black text-zinc-900 leading-[1.1]">
-            الطعم <br /> <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#B91C1C] to-red-600">الأصيل.</span>
-          </h1>
-          <p className="text-xl text-gray-500 mt-6 font-medium leading-relaxed max-w-lg">
-            نقدم لك أفضل تجربة شرائية للحوم الطازجة. جودة تليق بك وبأحبابك، وتوصيل سريع ومضمون.
-          </p>
-
-          <div className="mt-10 flex gap-4">
-            <div className="px-6 py-4 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-shadow">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-              <span className="font-bold text-gray-700">توصيل اليوم</span>
-            </div>
-            <div className="px-6 py-4 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-shadow">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-              <span className="font-bold text-gray-700">ذبح يومي</span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Interactive Form Card (Glass - White) */}
-        <motion.div
-          className="w-full max-w-[450px]"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, type: "spring" }}
         >
           <div className="bg-white/90 backdrop-blur-2xl border border-white/50 rounded-[2.5rem] shadow-[0_20px_40px_-15px_rgba(185,28,28,0.08)] p-6 sm:p-8 relative overflow-hidden ring-1 ring-black/5">
@@ -501,6 +470,48 @@ export default function Auth() {
             </AnimatePresence>
           </div>
         </motion.div>
+
+        {/* 2. Hero Section (Left Side in RTL) */}
+        <motion.div
+          className="hidden lg:flex flex-col items-center lg:items-end text-right max-w-xl"
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          <div className="relative mb-8">
+            <div className="absolute -inset-10 bg-red-500/10 rounded-full blur-[60px]" />
+            <ShieldCheck className="w-56 h-56 text-[#B91C1C] relative z-10 drop-shadow-2xl" />
+          </div>
+
+          <h1 className="text-8xl font-black text-zinc-900 leading-[1.1] tracking-tighter shadow-red-500/20">
+            الطعم <br /> <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#B91C1C] to-red-600">الأصيل.</span>
+          </h1>
+          <p className="text-2xl text-gray-500 mt-8 font-medium leading-relaxed max-w-lg">
+            نقدم لك أفضل تجربة شرائية للحوم الطازجة. <br /> جودة تليق بك وبأحبابك.
+          </p>
+
+          <div className="mt-12 flex gap-4">
+            <div className="px-8 py-4 bg-white rounded-3xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-shadow">
+              <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse" />
+              <span className="font-black text-gray-800 text-lg">توصيل اليوم</span>
+            </div>
+            <div className="px-8 py-4 bg-white rounded-3xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-shadow">
+              <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse" />
+              <span className="font-black text-gray-800 text-lg">ذبح يومي</span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Mobile-Only Simple Footer/Brand Text */}
+        <motion.div
+          className="lg:hidden text-center mt-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <p className="text-gray-400 text-sm font-medium">أفضل تجربة شرائية للحوم الطازجة</p>
+        </motion.div>
+
       </div>
     </div>
   );
