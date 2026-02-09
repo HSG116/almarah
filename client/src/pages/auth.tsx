@@ -76,6 +76,10 @@ export default function Auth() {
     setStep("selection");
   };
 
+  // No changes to logic, just context to ensure file match if needed.
+  // Proceeding to replace the Return statement in the next block.
+  // Actually, I will replace the LOGIC and RETURN to be safe and ensure the structure is perfect.
+
   // --- Telegram & Phone Logic ---
   const [countryCode, setCountryCode] = useState("+966");
   const [telegramToken, setTelegramToken] = useState<string | null>(null);
@@ -268,27 +272,60 @@ export default function Auth() {
         />
       </div>
 
-      <div className="relative z-10 w-full max-w-6xl flex flex-col-reverse lg:flex-row items-center justify-between p-4 px-6 lg:px-20 gap-8 lg:gap-16">
+      <div className="relative z-10 w-full max-w-7xl flex flex-col lg:flex-row items-center justify-center p-4 px-4 lg:px-20 gap-8 lg:gap-32">
 
-        {/* Right Side: Interactive Form Card (Glass - White) */}
+        {/* Mobile Header Logo (Visible only on mobile) - MOVED OUTSIDE CARD TO BE FIRST ELEMENT */}
+        <div className="lg:hidden flex flex-col items-center gap-2 mb-2 w-full">
+          <div className="w-16 h-16 bg-gradient-to-br from-red-50 to-white rounded-2xl flex items-center justify-center shadow-lg shadow-red-900/5 border border-red-100">
+            <ShieldCheck className="w-8 h-8 text-[#B91C1C]" />
+          </div>
+          <h1 className="text-2xl font-black text-zinc-900 tracking-tight">الـمـلـحـمـة</h1>
+          <p className="text-xs font-bold text-gray-400">جودة تستحق الثقة</p>
+        </div>
+
+        {/* Hero Section (Hidden on Mobile, Visible on Desktop) - NOW FIRST IN FLEX ROW (Left in LTR) logic, but visually depends on direction */}
+        <motion.div
+          className="hidden lg:flex flex-col items-center lg:items-end text-right max-w-xl"
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          <div className="relative mb-8">
+            <div className="absolute -inset-10 bg-red-500/10 rounded-full blur-[60px]" />
+            <ShieldCheck className="w-48 h-48 text-[#B91C1C] relative z-10 drop-shadow-2xl" />
+          </div>
+
+          <h1 className="text-7xl font-black text-zinc-900 leading-[1.1]">
+            الطعم <br /> <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#B91C1C] to-red-600">الأصيل.</span>
+          </h1>
+          <p className="text-xl text-gray-500 mt-6 font-medium leading-relaxed max-w-lg">
+            نقدم لك أفضل تجربة شرائية للحوم الطازجة. جودة تليق بك وبأحبابك، وتوصيل سريع ومضمون.
+          </p>
+
+          <div className="mt-10 flex gap-4">
+            <div className="px-6 py-4 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-shadow">
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+              <span className="font-bold text-gray-700">توصيل اليوم</span>
+            </div>
+            <div className="px-6 py-4 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-shadow">
+              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+              <span className="font-bold text-gray-700">ذبح يومي</span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Interactive Form Card (Glass - White) */}
         <motion.div
           className="w-full max-w-[450px]"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, type: "spring" }}
         >
-          {/* Mobile Header Logo (Visible only on mobile) */}
-          <div className="lg:hidden flex justify-center mb-6">
-            <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center shadow-sm border border-red-100">
-              <ShieldCheck className="w-8 h-8 text-red-700" />
-            </div>
-          </div>
-
-          <div className="bg-white/90 backdrop-blur-2xl border border-white/50 rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(185,28,28,0.1)] p-6 sm:p-8 lg:p-10 relative overflow-hidden ring-1 ring-black/5">
+          <div className="bg-white/90 backdrop-blur-2xl border border-white/50 rounded-[2.5rem] shadow-[0_20px_40px_-15px_rgba(185,28,28,0.08)] p-6 sm:p-8 relative overflow-hidden ring-1 ring-black/5">
 
             {/* Header */}
-            <div className="text-center mb-8">
-              <h2 className="text-3xl lg:text-4xl font-black text-zinc-900 mb-2 font-heading tracking-tight">
+            <div className="text-center mb-6 lg:mb-8">
+              <h2 className="text-3xl font-black text-zinc-900 mb-2 font-heading tracking-tight">
                 {step === 'form' ? 'تفضل بالدخول' : step === 'selection' ? 'تفعيل الحساب' : 'التحقق'}
               </h2>
               <p className="text-gray-500 font-bold text-sm">
@@ -305,9 +342,9 @@ export default function Auth() {
                   exit={{ opacity: 0, x: -20 }}
                 >
                   <Tabs defaultValue="login" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-100/80 p-1.5 rounded-2xl h-14">
-                      <TabsTrigger value="login" className="rounded-xl h-full font-bold text-gray-600 data-[state=active]:bg-white data-[state=active]:text-red-700 data-[state=active]:shadow-sm transition-all duration-300">تسجيل دخول</TabsTrigger>
-                      <TabsTrigger value="register" className="rounded-xl h-full font-bold text-gray-600 data-[state=active]:bg-white data-[state=active]:text-red-700 data-[state=active]:shadow-sm transition-all duration-300">حساب جديد</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-50/80 p-1.5 rounded-2xl h-14 border border-gray-100">
+                      <TabsTrigger value="login" className="rounded-xl h-full font-bold text-gray-500 data-[state=active]:bg-white data-[state=active]:text-[#B91C1C] data-[state=active]:shadow-sm transition-all duration-300">تسجيل دخول</TabsTrigger>
+                      <TabsTrigger value="register" className="rounded-xl h-full font-bold text-gray-500 data-[state=active]:bg-white data-[state=active]:text-[#B91C1C] data-[state=active]:shadow-sm transition-all duration-300">حساب جديد</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="login" className="mt-0 space-y-5">
@@ -316,7 +353,7 @@ export default function Auth() {
                         <Input
                           {...loginForm.register("email")}
                           dir="ltr"
-                          className="h-14 bg-gray-50 border-gray-100 focus:bg-white focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 rounded-2xl transition-all text-lg px-4 shadow-sm text-zinc-800 placeholder:text-gray-400"
+                          className="h-14 bg-white border-gray-200 focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 rounded-2xl transition-all text-lg px-4 shadow-sm text-zinc-800 placeholder:text-gray-300"
                           placeholder="name@example.com"
                         />
                       </div>
@@ -325,7 +362,7 @@ export default function Auth() {
                         <Input
                           type="password"
                           {...loginForm.register("password")}
-                          className="h-14 bg-gray-50 border-gray-100 focus:bg-white focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 rounded-2xl transition-all text-lg px-4 shadow-sm text-zinc-800 tracking-widest placeholder:text-gray-400"
+                          className="h-14 bg-white border-gray-200 focus:border-red-500/50 focus:ring-4 focus:ring-red-500/10 rounded-2xl transition-all text-lg px-4 shadow-sm text-zinc-800 tracking-widest placeholder:text-gray-300"
                           placeholder="••••••••"
                         />
                       </div>
@@ -340,15 +377,15 @@ export default function Auth() {
 
                     <TabsContent value="register" className="mt-0 space-y-4">
                       <form onSubmit={registerForm.handleSubmit(handleRegisterSubmit)} className="space-y-4">
-                        <Input {...registerForm.register("username")} dir="ltr" placeholder="اسم المستخدم" className="h-12 bg-gray-50 border-gray-100 rounded-xl focus:bg-white focus:border-red-500/30 focus:ring-red-500/10 transition-all font-medium" />
-                        <Input {...registerForm.register("email")} type="email" dir="ltr" placeholder="البريد الإلكتروني" className="h-12 bg-gray-50 border-gray-100 rounded-xl focus:bg-white focus:border-red-500/30 focus:ring-red-500/10 transition-all font-medium" />
+                        <Input {...registerForm.register("username")} dir="ltr" placeholder="اسم المستخدم" className="h-12 bg-white border-gray-200 rounded-xl focus:border-red-500/30 focus:ring-red-500/10 transition-all font-medium" />
+                        <Input {...registerForm.register("email")} type="email" dir="ltr" placeholder="البريد الإلكتروني" className="h-12 bg-white border-gray-200 rounded-xl focus:border-red-500/30 focus:ring-red-500/10 transition-all font-medium" />
                         <div className="flex gap-2" dir="ltr">
                           <CountrySelect value={countryCode} onChange={setCountryCode} />
-                          <Input {...registerForm.register("phone")} type="tel" placeholder="5xxxxxxxx" className="h-12 bg-gray-50 border-gray-100 rounded-xl focus:bg-white focus:border-red-500/30 focus:ring-red-500/10 flex-1 font-bold text-lg transition-all" />
+                          <Input {...registerForm.register("phone")} type="tel" placeholder="5xxxxxxxx" className="h-12 bg-white border-gray-200 rounded-xl focus:border-red-500/30 focus:ring-red-500/10 flex-1 font-bold text-lg transition-all" />
                         </div>
                         <div className="grid grid-cols-2 gap-3">
-                          <Input type="password" {...registerForm.register("password")} placeholder="كلمة المرور" className="h-12 bg-gray-50 border-gray-100 rounded-xl focus:bg-white focus:border-red-500/30 focus:ring-red-500/10 transition-all font-medium" />
-                          <Input type="password" {...registerForm.register("confirmPassword")} placeholder="تأكيدها" className="h-12 bg-gray-50 border-gray-100 rounded-xl focus:bg-white focus:border-red-500/30 focus:ring-red-500/10 transition-all font-medium" />
+                          <Input type="password" {...registerForm.register("password")} placeholder="كلمة المرور" className="h-12 bg-white border-gray-200 rounded-xl focus:border-red-500/30 focus:ring-red-500/10 transition-all font-medium" />
+                          <Input type="password" {...registerForm.register("confirmPassword")} placeholder="تأكيدها" className="h-12 bg-white border-gray-200 rounded-xl focus:border-red-500/30 focus:ring-red-500/10 transition-all font-medium" />
                         </div>
 
                         <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
@@ -417,7 +454,7 @@ export default function Auth() {
                 >
                   {otpMethod === "telegram" ? (
                     <div className="space-y-6">
-                      <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto animate-pulse">
+                      <div className="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto animate-pulse">
                         <Send className="w-10 h-10" />
                       </div>
                       <div>
@@ -464,48 +501,6 @@ export default function Auth() {
             </AnimatePresence>
           </div>
         </motion.div>
-
-        {/* Left Side: Brand & Hero Custom Illustration or Text (Modified for better mobile fit) */}
-        <motion.div
-          className="hidden lg:flex flex-col items-center lg:items-end text-right max-w-xl"
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
-          <div className="relative mb-10">
-            <div className="absolute -inset-10 bg-red-500/10 rounded-full blur-[60px]" />
-            <ShieldCheck className="w-40 h-40 text-[#B91C1C] relative z-10 drop-shadow-2xl" />
-          </div>
-
-          <h1 className="text-7xl font-black text-zinc-900 leading-tight">
-            الطعم <br /> <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#B91C1C] to-red-500">الأصيل.</span>
-          </h1>
-          <p className="text-xl text-gray-500 mt-6 font-medium leading-relaxed max-w-lg">
-            نقدم لك أفضل تجربة شرائية للحوم الطازجة. جودة تليق بك وبأحبابك، وتوصيل سريع ومضمون.
-          </p>
-
-          <div className="mt-10 flex gap-4">
-            <div className="px-6 py-4 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-shadow">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-              <span className="font-bold text-gray-700">توصيل اليوم</span>
-            </div>
-            <div className="px-6 py-4 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-shadow">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-              <span className="font-bold text-gray-700">ذبح يومي</span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Mobile-Only Simple Footer/Brand Text */}
-        <motion.div
-          className="lg:hidden text-center mt-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          <p className="text-gray-400 text-sm font-medium">أفضل تجربة شرائية للحوم الطازجة</p>
-        </motion.div>
-
       </div>
     </div>
   );
