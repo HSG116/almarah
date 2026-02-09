@@ -295,14 +295,14 @@ export default function Auth() {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             {/* Header: Logo and Title Horizontal row - STRICT RIGHT ALIGNMENT */}
-            <div className="flex flex-row items-center justify-start gap-5 mb-6 w-full select-none">
+            <div className="flex flex-row items-center justify-start gap-4 mb-6 w-full select-none">
               {/* Logo */}
               <div className="relative shrink-0">
-                <ShieldCheck className="w-20 h-20 lg:w-24 lg:h-24 text-[#B91C1C] drop-shadow-xl" />
+                <ShieldCheck className="w-16 h-16 lg:w-20 lg:h-20 text-[#B91C1C] drop-shadow-xl" />
               </div>
 
-              {/* Title (Single Line) */}
-              <h1 className="text-6xl lg:text-7xl font-black text-zinc-900 leading-none tracking-tight pt-3">
+              {/* Title (Single Line - Forced) */}
+              <h1 className="text-5xl lg:text-7xl font-black text-zinc-900 leading-none tracking-tight pt-2 whitespace-nowrap">
                 الطعم <span className="text-[#B91C1C]">الأصيل.</span>
               </h1>
             </div>
