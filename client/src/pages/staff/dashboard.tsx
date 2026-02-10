@@ -9,7 +9,7 @@ import {
   Package, LayoutDashboard, FileText, Settings,
   Users, DollarSign, BarChart3, MessageSquare,
   PenTool, PhoneCall, ExternalLink, Activity,
-  Plus, Search, TrendingUp, Gift, Printer, Eye, X
+  Plus, Search, TrendingUp, Gift, Printer, Eye, X, Bell
 } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { useLocation } from "wouter";
@@ -909,28 +909,27 @@ export function DeliveryPortal({ orders, staffMembers, deliveryZones, onPrintReq
     const todayOrders = orders.filter(o =>
       o.driver_staff_id === currentStaff?.id &&
       o.status === 'completed' &&
-      new Date(o.updated_at) >= today
+      new Date(o.updated_at || o.updatedAt || 0).getTime() >= today.getTime()
     );
 
-    // Correct Earnings Calculation: Sum of (Delivery Fee * Driver Commission %)
-    // "اذا كان رسوم التوصيل 10 للمنطقة وكمان العمولة تبعت السائق 80% يعني ياخد 8"
     return todayOrders.reduce((sum, o) => sum + (o.driverCommissionAmount || 0), 0);
-  }, [todayOrders]);
+  }, [orders, currentStaff]);
 
-  const weekEarnings = useMemo(() => {
+  const weekOrders = useMemo(() => {
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
     weekAgo.setHours(0, 0, 0, 0);
 
-    const weekOrders = orders.filter(o =>
+    return orders.filter(o =>
       o.driver_staff_id === currentStaff?.id &&
       o.status === 'completed' &&
-      new Date(o.updated_at) >= weekAgo
+      new Date(o.updated_at || o.updatedAt || 0).getTime() >= weekAgo.getTime()
     );
-
-    const revenue = weekOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-    return Math.round(revenue * 0.15);
   }, [orders, currentStaff]);
+
+  const weekEarnings = useMemo(() => {
+    return weekOrders.reduce((sum, o) => sum + (o.driverCommissionAmount || 0), 0);
+  }, [weekOrders]);
 
   const totalBalance = useMemo(() => {
     const completedOrders = orders.filter(o =>
@@ -938,8 +937,9 @@ export function DeliveryPortal({ orders, staffMembers, deliveryZones, onPrintReq
       o.status === 'completed'
     );
 
-    const revenue = completedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-    return Math.round(revenue * 0.15);
+    const commissions = completedOrders.reduce((sum, o) => sum + (o.driverCommissionAmount || 0), 0);
+    const baseBalance = currentStaff?.walletBalance || currentStaff?.wallet_balance || 0;
+    return commissions + baseBalance;
   }, [orders, currentStaff]);
 
   const todayOrdersCount = useMemo(() => {
@@ -949,21 +949,13 @@ export function DeliveryPortal({ orders, staffMembers, deliveryZones, onPrintReq
     return orders.filter(o =>
       o.driver_staff_id === currentStaff?.id &&
       o.status === 'completed' &&
-      new Date(o.updated_at) >= today
+      new Date(o.updated_at || o.updatedAt || 0).getTime() >= today.getTime()
     ).length;
   }, [orders, currentStaff]);
 
   const weekOrdersCount = useMemo(() => {
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    weekAgo.setHours(0, 0, 0, 0);
-
-    return orders.filter(o =>
-      o.driver_staff_id === currentStaff?.id &&
-      o.status === 'completed' &&
-      new Date(o.updated_at) >= weekAgo
-    ).length;
-  }, [orders, currentStaff]);
+    return weekOrders.length;
+  }, [weekOrders]);
 
   // Generate real transaction history
   const transactions = useMemo(() => {
@@ -972,8 +964,8 @@ export function DeliveryPortal({ orders, staffMembers, deliveryZones, onPrintReq
       .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
       .slice(0, 10) // Last 10 transactions
       .map(o => ({
-        date: new Date(o.updated_at).toLocaleDateString('ar-SA'),
-        amount: Math.round((o.total || 0) * 0.15),
+        date: new Date(o.updated_at || o.updatedAt).toLocaleDateString('ar-SA'),
+        amount: o.driverCommissionAmount || 0,
         type: 'رحلة توصيل',
         status: 'completed',
         orderId: o.id
@@ -984,7 +976,13 @@ export function DeliveryPortal({ orders, staffMembers, deliveryZones, onPrintReq
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number, status: string }) => {
-      const { error } = await supabase.from('orders').update({ status }).eq('id', id);
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -1018,6 +1016,28 @@ export function DeliveryPortal({ orders, staffMembers, deliveryZones, onPrintReq
     },
     onError: (err: any) => {
       toast({ title: "❌ فشل الاستلام", description: err.message, variant: "destructive" });
+    }
+  });
+
+  const requestPayoutMutation = useMutation({
+    mutationFn: async ({ amount, method }: { amount: number, method: string }) => {
+      if (!currentStaff) throw new Error("لم يتم العثور على سجل الموظف");
+      if (amount > totalBalance) throw new Error("الرصيد غير كافٍ");
+
+      const { error } = await supabase.from('payout_requests').insert([{
+        staff_id: currentStaff.id,
+        amount,
+        method,
+        status: 'pending'
+      }]);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payout_requests"] });
+      toast({ title: "✅ تم إرسال الطلب", description: "سيتم مراجعة طلب الصرف من قبل الإدارة" });
+    },
+    onError: (err: any) => {
+      toast({ title: "❌ فشل الطلب", description: err.message, variant: "destructive" });
     }
   });
 
@@ -1203,16 +1223,25 @@ export function DeliveryPortal({ orders, staffMembers, deliveryZones, onPrintReq
         <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden">
           <div className="p-8 border-b bg-slate-50">
             <h3 className="text-2xl font-black text-slate-900">طلب صرف الأرباح</h3>
-            <p className="text-slate-500 font-bold mt-1">اختر طريقة استلام أرباحك</p>
+            <p className="text-slate-500 font-bold mt-1">اختر طريقة استلام أرباحك (الرصيد المتاح: {totalBalance} ﷼)</p>
           </div>
           <div className="p-8 space-y-4">
-            <Button className="w-full h-20 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white text-xl font-black rounded-[2rem] shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 gap-3">
+            <Button
+              className="w-full h-20 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white text-xl font-black rounded-[2rem] shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 gap-3"
+              disabled={requestPayoutMutation.isPending || totalBalance <= 0}
+              onClick={() => requestPayoutMutation.mutate({ amount: totalBalance, method: 'bank_transfer' })}
+            >
               <DollarSign className="h-8 w-8" />
-              تحويل بنكي فوري
+              {requestPayoutMutation.isPending ? "جاري الإرسال..." : "سحب الرصيد الإجمالي فوري"}
             </Button>
-            <Button variant="outline" className="w-full h-20 border-2 border-slate-200 text-slate-700 text-xl font-black rounded-[2rem] hover:bg-slate-50 transition-all gap-3">
+            <Button
+              variant="outline"
+              className="w-full h-20 border-2 border-slate-200 text-slate-700 text-xl font-black rounded-[2rem] hover:bg-slate-50 transition-all gap-3"
+              disabled={requestPayoutMutation.isPending || totalBalance <= 0}
+              onClick={() => requestPayoutMutation.mutate({ amount: totalBalance, method: 'cash' })}
+            >
               <Activity className="h-8 w-8" />
-              استلام نقدي في الفرع
+              استلام نقدي من الفرع
             </Button>
           </div>
         </Card>
@@ -1750,10 +1779,13 @@ export function AccountantPortal() {
     refetchInterval: 10000 // Poll every 10 seconds for staff updates
   });
 
-  const { data: deliveryZones = [] } = useQuery<any[]>({
-    queryKey: ["delivery_zones"],
+  const { data: payoutRequests = [] } = useQuery<any[]>({
+    queryKey: ["payout_requests"],
     queryFn: async () => {
-      const { data, error } = await supabase.from('delivery_zones').select('*');
+      const { data, error } = await supabase
+        .from('payout_requests')
+        .select('*, staff(name, role, wallet_balance)')
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data || [];
     }
@@ -1785,6 +1817,38 @@ export function AccountantPortal() {
     }
   });
 
+  const handlePayoutMutation = useMutation({
+    mutationFn: async ({ id, status, staffId, amount }: { id: number, status: string, staffId: number, amount: number }) => {
+      const { error: updateError } = await supabase
+        .from('payout_requests')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (updateError) throw updateError;
+
+      if (status === 'approved') {
+        // If approved, create a financial record and potentially reset/adjust wallet
+        const { error: recordError } = await supabase.from('financial_records').insert([{
+          staff_id: staffId,
+          type: 'payout',
+          amount: amount,
+          description: `صرف راتب/أرباح للموظف عبر النظام`,
+          category: 'salaries'
+        }]);
+        if (recordError) throw recordError;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payout_requests"] });
+      queryClient.invalidateQueries({ queryKey: ["financial_records"] });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
+      toast({ title: "تم تحديث حالة الطلب بنجاح" });
+    },
+    onError: (err: any) => {
+      toast({ title: "فشل التحديث", description: err.message, variant: "destructive" });
+    }
+  });
+
   // --- Real Data Calculations ---
   const today = new Date().toISOString().split('T')[0];
   const todayOrders = orders.filter(o => o.created_at?.startsWith(today));
@@ -1807,7 +1871,8 @@ export function AccountantPortal() {
       const ordersWithCommission = staffOrders.map(order => {
         const zone = deliveryZones.find(z => z.id === order.zone_id);
         const fee = order.delivery_fee || order.deliveryFee || zone?.fee || 0;
-        const commissionRate = zone?.driver_commission || 0; // percentage , e.g. 80
+        // Correcting property to driver_commission (from Supabase raw data)
+        const commissionRate = zone?.driver_commission || zone?.driverCommission || 80; // percentage , e.g. 80, fallback to 80
         const commission = fee * (commissionRate / 100);
         commissions += commission;
         return { ...order, zone_name: zone?.name || 'غير محدد', commission, delivery_fee: fee };
@@ -2248,6 +2313,75 @@ export function AccountantPortal() {
               <Button className="bg-slate-900 text-white rounded-2xl h-14 px-8 font-black shadow-xl">إغلاق الدورة المالية</Button>
               <Button className="bg-emerald-600 text-white rounded-2xl h-14 px-8 font-black shadow-xl">صرف الرواتب الجماعي</Button>
             </div>
+          </div>
+
+          {/* New Payout Requests Management Section */}
+          <div className="space-y-6 mb-12">
+            <div className="flex items-center justify-between px-4">
+              <h4 className="text-2xl font-black text-slate-800 flex items-center gap-3">
+                <CreditCard className="w-8 h-8 text-amber-500" /> طلبات الصرف المعلقة
+              </h4>
+              <Badge className="bg-amber-100 text-amber-600 border-none font-bold py-1.5 px-4 rounded-full">
+                {payoutRequests.filter(r => r.status === 'pending').length} طلب جديد هـذا اليوم
+              </Badge>
+            </div>
+
+            <ScrollArea className="h-auto max-h-[500px]">
+              <div className="grid md:grid-cols-2 gap-6 p-2">
+                {payoutRequests.filter(r => r.status === 'pending').map((request) => (
+                  <div key={request.id} className="bg-white rounded-[2.5rem] border-4 border-slate-50 hover:border-amber-400 transition-all p-8 shadow-sm hover:shadow-xl group relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-2 h-full bg-amber-500" />
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="flex items-center gap-5">
+                        <div className="h-16 w-16 bg-slate-100 rounded-[1.5rem] flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-transform">
+                          {request.staff?.name?.[0] || 'M'}
+                        </div>
+                        <div>
+                          <p className="font-black text-xl text-slate-900">{request.staff?.name}</p>
+                          <Badge variant="outline" className="font-bold border-slate-200 mt-1">{request.staff?.role === 'delivery' ? 'مندوب' : 'موظف'}</Badge>
+                        </div>
+                      </div>
+                      <div className="text-left">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">المبلغ المطلوب</p>
+                        <p className="text-3xl font-black text-emerald-600">{request.amount.toLocaleString()} <span className="text-sm opacity-50">﷼</span></p>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 rounded-2xl p-4 mb-6 flex items-center justify-between text-sm font-bold text-slate-500">
+                      <div className="flex items-center gap-2">
+                        <Activity className="w-4 h-4" />
+                        طريقة السحب: {request.method === 'bank_transfer' ? 'تحويل بنكي 🏦' : 'نقداً 🧾'}
+                      </div>
+                      <span>{new Date(request.created_at).toLocaleDateString('ar-SA')}</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <Button
+                        className="h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl font-black text-white shadow-lg shadow-emerald-100"
+                        onClick={() => handlePayoutMutation.mutate({ id: request.id, status: 'approved', staffId: request.staff_id, amount: request.amount })}
+                        disabled={handlePayoutMutation.isPending}
+                      >
+                        قبول وصرف
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="h-14 text-rose-500 hover:bg-rose-50 rounded-2xl font-black"
+                        onClick={() => handlePayoutMutation.mutate({ id: request.id, status: 'rejected', staffId: request.staff_id, amount: request.amount })}
+                        disabled={handlePayoutMutation.isPending}
+                      >
+                        رفض تعليلي
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+
+                {payoutRequests.filter(r => r.status === 'pending').length === 0 && (
+                  <div className="col-span-full py-16 bg-slate-50 rounded-[3rem] border-4 border-dashed border-slate-200 text-center">
+                    <p className="text-2xl font-black text-slate-300">لا يوجد طلبات صرف معلقة حالياً ✅</p>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
           </div>
 
           <div className="space-y-4">
@@ -2819,6 +2953,30 @@ export default function StaffDashboard({ forcedRole }: { forcedRole?: string }) 
     }
   });
 
+  const { data: notifications = [] } = useQuery<any[]>({
+    queryKey: ["notifications", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('id', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+    refetchInterval: 10000
+  });
+
+  const markReadMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    }
+  });
+
   const { data: orders = [] } = useQuery<(Order & { order_items: any[] })[]>({
     queryKey: ["orders", settingsMap.order_config?.delivery_fee_default],
     queryFn: async () => {
@@ -2857,7 +3015,11 @@ export default function StaffDashboard({ forcedRole }: { forcedRole?: string }) 
 
         if (matchedZone) {
           feeFromZone = matchedZone.fee || 0;
-          commissionRate = matchedZone.driverCommission || 0;
+          // Supabase raw results use driver_commission (snake_case)
+          commissionRate = matchedZone.driver_commission || matchedZone.driverCommission || 80;
+        } else {
+          // Fallback commission rate if zone is not matched
+          commissionRate = 80;
         }
 
         const finalDelivery = o.delivery_fee || feeFromZone || defaultFee;
@@ -2993,6 +3155,59 @@ export default function StaffDashboard({ forcedRole }: { forcedRole?: string }) 
           </div>
 
           <div className="flex items-center gap-4">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative h-12 w-12 rounded-2xl bg-white border-2 border-slate-50 hover:border-primary/20 hover:bg-white transition-all">
+                  <Bell className="h-6 w-6 text-slate-500" />
+                  {notifications.filter(n => !n.is_read).length > 0 && (
+                    <span className="absolute -top-1 -right-1 h-5 w-5 bg-rose-500 text-white text-[10px] flex items-center justify-center rounded-full font-black animate-bounce shadow-lg shadow-rose-200">
+                      {notifications.filter(n => !n.is_read).length}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-[380px] p-0 rounded-[2.5rem] border-none shadow-2xl overflow-hidden">
+                <div className="bg-slate-900 p-6 text-white text-right">
+                  <h3 className="font-black text-lg">التنبيهات المركزية</h3>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">إشعارات النظام المباشرة</p>
+                </div>
+                <ScrollArea className="h-[400px]">
+                  <div className="p-4 space-y-3 bg-slate-50">
+                    {notifications.length > 0 ? (
+                      notifications.map((n) => (
+                        <div
+                          key={n.id}
+                          className={`p-5 rounded-2xl border-2 transition-all cursor-pointer ${n.is_read ? 'bg-white border-transparent' : 'bg-indigo-50 border-indigo-100 shadow-sm'}`}
+                          onClick={() => !n.is_read && markReadMutation.mutate(n.id)}
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-black text-slate-900 text-sm">{n.title}</h4>
+                            <span className="text-[10px] font-bold text-slate-400">{new Date(n.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                          <p className="text-xs text-slate-600 font-bold leading-relaxed">{n.message}</p>
+                          {!n.is_read && (
+                            <div className="mt-3 flex justify-end">
+                              <span className="text-[10px] font-black text-indigo-600 uppercase">جديد ✨</span>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-20 text-center space-y-3">
+                        <Bell className="h-10 w-10 text-slate-200 mx-auto" />
+                        <p className="text-slate-400 font-black text-sm">لا توجد تنبيهات حالياً</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+                {notifications.length > 0 && (
+                  <div className="p-4 bg-white border-t text-center">
+                    <Button variant="ghost" className="text-xs font-black text-indigo-600 hover:bg-slate-50 w-full rounded-xl">مشاهدة جميع التنبيهات</Button>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+
             {(user?.role === 'admin' || user?.role === 'manager') && (
               <Button onClick={() => window.location.href = '/admin'} variant="outline" className="rounded-2xl border-2 font-black h-12">لوحة الإدارة الكاملة</Button>
             )}

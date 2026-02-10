@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, serial, real, boolean, integer, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, serial, real, boolean, integer, uuid, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -230,6 +230,19 @@ export const butcherInventoryLogs = pgTable("butcher_inventory_logs", {
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
 });
 
+// New Table: Payout Requests
+export const payoutRequests = pgTable("payout_requests", {
+  id: serial("id").primaryKey(),
+  staffId: integer("staff_id").references(() => staff.id),
+  amount: real("amount").notNull(),
+  status: text("status").notNull().default("pending"), // 'pending', 'approved', 'rejected'
+  method: text("method").notNull().default("bank_transfer"),
+  notes: text("notes"),
+  pickupDetails: jsonb("pickup_details"), // Updated to jsonb to store object directly
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`),
+});
+
 // New Table: Site Settings
 export const siteSettings = pgTable("site_settings", {
   key: text("key").primaryKey(),
@@ -282,6 +295,7 @@ export const insertDriverSchema = createInsertSchema(drivers);
 export const insertOfferSchema = createInsertSchema(offers);
 export const insertNotificationSchema = createInsertSchema(notifications);
 export const insertSiteSettingsSchema = createInsertSchema(siteSettings);
+export const insertPayoutRequestSchema = createInsertSchema(payoutRequests);
 
 // Specialized schemas
 export const insertButcherLogSchema = createInsertSchema(butcherLogs);
@@ -321,3 +335,5 @@ export type DeliveryTrip = typeof deliveryTrips.$inferSelect;
 export type FinancialRecord = typeof financialRecords.$inferSelect;
 export type SupportTicket = typeof supportTickets.$inferSelect;
 export type MarketingTask = typeof marketingTasks.$inferSelect;
+export type PayoutRequest = typeof payoutRequests.$inferSelect;
+export type InsertPayoutRequest = z.infer<typeof insertPayoutRequestSchema>;

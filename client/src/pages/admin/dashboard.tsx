@@ -54,6 +54,7 @@ import {
   Eye,
   Calendar,
   PenTool,
+  Activity,
   User as UserIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -96,6 +97,17 @@ import CoverageMap from "@/components/admin/CoverageMap";
 import ZonesPreviewMap from "@/components/admin/ZonesPreviewMap";
 
 
+interface ButcherInventoryLog {
+  id: number;
+  staffId: number;
+  productId: number;
+  oldQuantity: number;
+  newQuantity: number;
+  oldPrice: number;
+  newPrice: number;
+  actionType: string;
+  createdAt: string;
+}
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -538,7 +550,6 @@ export default function AdminDashboard() {
         ...z,
         isActive: z.is_active !== false,
         minOrder: z.min_order ?? z.minOrder,
-        driver_commission: z.driver_commission,
         driverCommission: z.driver_commission ?? z.driverCommission ?? 0,
         fee: z.fee ?? 0
       })) as DeliveryZone[];
@@ -619,6 +630,13 @@ export default function AdminDashboard() {
     permissions: [] as string[]
   });
 
+  const [isPickupDialogOpen, setIsPickupDialogOpen] = useState(false);
+  const [selectedPayoutForPickup, setSelectedPayoutForPickup] = useState<any>(null);
+  const [pickupForm, setPickupForm] = useState({
+    address: "المستودع الرئيسي - الرياض",
+    time: "غداً بين الساعة 10 صباحاً و 4 مساءً"
+  });
+
   const { data: staffList = [] } = useQuery<Staff[]>({
     queryKey: ["staff"],
     queryFn: async () => {
@@ -627,6 +645,8 @@ export default function AdminDashboard() {
       return (data || []).map(s => ({
         ...s,
         userId: s.user_id || s.userId,
+        roleSettings: s.role_settings || s.roleSettings || "{}",
+        walletBalance: s.wallet_balance ?? s.walletBalance ?? 0,
         isActive: s.is_active !== false,
         joinedAt: s.joined_at || s.joinedAt
       })) as Staff[];
@@ -654,6 +674,98 @@ export default function AdminDashboard() {
       })) as ButcherInventoryLog[];
     },
     enabled: activeTab === "staff" || isStaffDetailsOpen
+  });
+
+  const { data: payoutRequests = [] } = useQuery<any[]>({
+    queryKey: ["payout_requests"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('payout_requests')
+        .select('*, staff(*)')
+        .order('id', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(r => {
+        let pickup = null;
+        try {
+          pickup = typeof r.pickup_details === 'string' ? JSON.parse(r.pickup_details) : r.pickup_details;
+        } catch (e) {
+          console.error("Failed to parse pickup_details:", e);
+        }
+        return {
+          ...r,
+          createdAt: r.created_at || r.createdAt,
+          pickupDetails: pickup
+        };
+      });
+    },
+    enabled: activeTab === "salaries"
+  });
+
+  const handlePayoutMutation = useMutation({
+    mutationFn: async ({ id, status, staffId, amount, pickupDetails }: { id: number, status: 'approved' | 'rejected', staffId: number, amount: number, pickupDetails?: any }) => {
+      const { error } = await supabase
+        .from('payout_requests')
+        .update({
+          status,
+          updated_at: new Date().toISOString(),
+          pickup_details: pickupDetails
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Get staff details to send notification
+      const { data: staffData } = await supabase.from('staff').select('user_id').eq('id', staffId).single();
+
+      if (status === 'approved') {
+        const { error: walletError } = await supabase.rpc('decrement_staff_wallet', {
+          p_staff_id: staffId,
+          p_amount: amount
+        });
+        if (walletError) throw walletError;
+
+        await supabase.from('financial_records').insert([{
+          staff_id: staffId,
+          type: 'payout',
+          amount: amount,
+          category: 'salaries',
+          description: `صرف مستحقات موظف #${staffId} - طلب #${id}`
+        }]);
+
+        // Send approval notification
+        if (staffData?.user_id) {
+          await supabase.from('notifications').insert([{
+            user_id: staffData.user_id,
+            title: "تمت الموافقة على طلب الصرف ✅",
+            message: pickupDetails
+              ? `تمت الموافقة على طلبك بمبلغ ${amount} ﷼. يرجى التوجه إلى: ${pickupDetails.address} في وقت: ${pickupDetails.time}`
+              : `تمت الموافقة على طلبك بمبلغ ${amount} ﷼ وسيتم التحويل قريباً.`
+          }]);
+        }
+      } else if (status === 'rejected') {
+        if (staffData?.user_id) {
+          await supabase.from('notifications').insert([{
+            user_id: staffData.user_id,
+            title: "تم رفض طلب الصرف ❌",
+            message: `نعتذر، تم رفض طلب الصرف الخاص بك بمبلغ ${amount} ﷼. يرجى مراجعة الإدارة.`
+          }]);
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payout_requests"] });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
+      queryClient.invalidateQueries({ queryKey: ["financial_records"] });
+      toast({ title: "تم تحديث حالة الطلب وإرسال الإشعار" });
+    },
+    onError: (error: any) => {
+      console.error("Payout error:", error);
+      toast({
+        title: "فشل معالجة الطلب",
+        description: error.message || "تأكد من وجود جميع الجداول والصلاحيات اللازمة",
+        variant: "destructive"
+      });
+    }
   });
 
   const { data: recentUsers = [], isLoading: isUsersLoading } = useQuery<any[]>({
@@ -926,15 +1038,70 @@ export default function AdminDashboard() {
     });
   }, [usersList, orders]);
 
-  const stats = useMemo(() => ({
-    totalSales: orders.reduce((acc, o) => acc + (parseFloat(o.total as any) || 0), 0),
-    orderCount: orders.length,
-    pendingOrders: orders.filter(o => o.status === 'pending').length,
-    activeProducts: products.length,
-    categoryCount: categories.length,
-    vipCount: usersWithInsights.filter(u => u.isVIP).length,
-    bannedCount: usersList.filter(u => u.isBanned).length
-  }), [orders, products, categories, usersWithInsights, usersList]);
+  const stats = useMemo(() => {
+    const totalSales = orders.reduce((acc, o) => acc + (parseFloat(o.total as any) || 0), 0);
+
+    // Improved total commissions calculation - include all orders that are not cancelled
+    const totalCommissions = orders.reduce((acc, o) => {
+      if (o.status === 'cancelled' || !o.zoneId) return acc;
+      const zone = deliveryZones.find(z => z.id === o.zoneId);
+      const commissionRate = zone?.driverCommission || 15;
+      return acc + ((o.total * (commissionRate / 100)) || 0);
+    }, 0);
+
+    const totalWalletBalance = staffList.reduce((acc, s) => acc + (s.walletBalance || 0), 0);
+
+    const totalPayrollBudget = staffList.reduce((acc, s) => {
+      const settings = typeof s.roleSettings === 'string' ? JSON.parse(s.roleSettings || '{}') : (s.roleSettings || {});
+      return acc + (parseFloat(settings.salary || settings.baseSalary || 0));
+    }, 0);
+
+    return {
+      totalSales,
+      orderCount: orders.length,
+      pendingOrders: orders.filter(o => o.status === 'pending').length,
+      activeProducts: products.length,
+      categoryCount: categories.length,
+      vipCount: usersWithInsights.filter(u => u.isVIP).length,
+      bannedCount: usersList.filter(u => u.isBanned).length,
+      totalStaffCount: staffList.length,
+      totalPayrollBudget,
+      totalCommissions,
+      totalWalletBalance
+    };
+  }, [orders, products, categories, usersWithInsights, usersList, staffList, deliveryZones]);
+
+  // Transform staff for payroll view
+  const staffPayrollStats = useMemo(() => {
+    return staffList.map(s => {
+      const settings = typeof s.roleSettings === 'string' ? JSON.parse(s.roleSettings || '{}') : (s.roleSettings || {});
+      const baseSalary = parseFloat(settings.salary || settings.baseSalary || 0);
+
+      // Commissions from all non-cancelled orders assigned to this staff
+      const staffOrders = orders.filter(o =>
+        o.status !== 'cancelled' &&
+        ((s.role === 'butcher' && o.butcherStaffId === s.id) ||
+          (s.role === 'delivery' && o.driverStaffId === s.id))
+      );
+
+      const commissions = staffOrders.reduce((acc, o) => {
+        const zone = deliveryZones.find(z => z.id === o.zoneId);
+        const commissionRate = zone?.driverCommission || 15;
+        return acc + (o.total * (commissionRate / 100));
+      }, 0);
+
+      const wallet_balance = s.walletBalance || 0;
+
+      return {
+        ...s,
+        orders: staffOrders,
+        baseSalary,
+        commissions,
+        wallet_balance,
+        totalEarnings: baseSalary + commissions + wallet_balance
+      };
+    });
+  }, [staffList, orders, deliveryZones]);
 
   // --- Helpers ---
   const resetProductForm = () => {
@@ -1347,8 +1514,8 @@ export default function AdminDashboard() {
     setZoneForm({
       name: zone.name || "",
       fee: (zone.fee || 0).toString(),
-      driverCommission: (zone.driver_commission || zone.driverCommission || 0).toString(),
-      minOrder: (zone.min_order || zone.minOrder || 0).toString(),
+      driverCommission: (zone.driverCommission ?? 0).toString(),
+      minOrder: (zone.minOrder ?? 0).toString(),
       coordinates: coordsStr
     });
     setIsZoneDialogOpen(true);
@@ -1392,6 +1559,7 @@ export default function AdminDashboard() {
               { id: "delivery", icon: Truck, label: "مناطق التوصيل", perm: "delivery_zones" },
               { id: "customers", icon: Users, label: "العملاء", perm: "staff" },
               { id: "staff", icon: UserCheck, label: "الموظفين", perm: "staff" },
+              { id: "salaries", icon: DollarSign, label: "الرواتب والتوظيف", perm: "staff" },
               { id: "marketing", icon: Ticket, label: "العروض والكوبونات", perm: "marketing" },
               { id: "settings", icon: Settings, label: "الإعدادات", perm: "settings" },
             ].filter(item => user?.isAdmin || user?.permissions?.includes(item.perm)).map((item) => (
@@ -2476,7 +2644,7 @@ export default function AdminDashboard() {
                   setIsZoneDialogOpen(val);
                   if (!val) {
                     setEditingZone(null);
-                    setZoneForm({ name: "", fee: "0", minOrder: "0", coordinates: "" });
+                    setZoneForm({ name: "", fee: "0", driverCommission: "0", minOrder: "0", coordinates: "" });
                   }
                 }}>
                   <DialogTrigger asChild>
@@ -3533,6 +3701,291 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     )}
+                  </DialogContent>
+                </Dialog>
+              </div>
+            )
+          }
+
+          {
+            activeTab === "salaries" && (
+              <div className="space-y-8 animate-in fade-in-50 duration-700 pb-20">
+                <div className="flex flex-col md:flex-row justify-between md:items-center gap-6">
+                  <div>
+                    <h1 className="text-4xl font-black font-heading text-slate-900 tracking-tight">الرواتب والتوظيف</h1>
+                    <p className="text-slate-500 font-medium">إدارة المستحقات المالية، طلبات الصرف، ومقاييس الأداء المالي للكادر</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button className="bg-emerald-600 hover:bg-emerald-700 text-white h-12 px-8 rounded-2xl shadow-xl shadow-emerald-100 font-black">
+                      صرف الرواتب الجماعي
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <Card className="p-8 rounded-[2.5rem] bg-white border-none shadow-xl text-center">
+                    <Users className="h-10 w-10 text-indigo-600 mx-auto mb-4" />
+                    <p className="text-slate-400 font-black text-xs uppercase tracking-widest">إجمالي الكادر</p>
+                    <p className="text-4xl font-black text-slate-900 mt-2">{stats.totalStaffCount} موظف</p>
+                  </Card>
+                  <Card className="p-8 rounded-[2.5rem] bg-slate-900 text-white border-none shadow-xl text-center">
+                    <DollarSign className="h-10 w-10 text-amber-400 mx-auto mb-4" />
+                    <p className="opacity-80 font-bold text-xs uppercase tracking-widest">الميزانية التقديرية</p>
+                    <p className="text-4xl font-black text-amber-400 mt-2">{stats.totalPayrollBudget.toLocaleString()} <span className="text-sm">﷼</span></p>
+                  </Card>
+                  <Card className="p-8 rounded-[2.5rem] bg-white border-none shadow-xl text-center">
+                    <Gift className="h-10 w-10 text-emerald-600 mx-auto mb-4" />
+                    <p className="text-slate-400 font-black text-xs uppercase tracking-widest">عمولات نشطة</p>
+                    <p className="text-4xl font-black text-emerald-600 mt-2">{stats.totalCommissions.toLocaleString()} <span className="text-sm">﷼</span></p>
+                  </Card>
+                  <Card className="p-8 rounded-[2.5rem] bg-rose-50 border-none shadow-sm text-center">
+                    <PieChart className="h-10 w-10 text-rose-600 mx-auto mb-4" />
+                    <p className="text-rose-900 font-bold text-xs uppercase tracking-widest">رصيد المحافظ الإجمالي</p>
+                    <p className="text-4xl font-black text-rose-600 mt-2">
+                      {(stats as any).totalWalletBalance?.toLocaleString() || 0} <span className="text-sm">﷼</span>
+                    </p>
+                  </Card>
+                </div>
+
+                {/* Payout Requests Section */}
+                <Card className="rounded-[3.5rem] p-10 bg-white border-none shadow-2xl relative overflow-hidden">
+                  <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+                    <div>
+                      <h3 className="text-3xl font-black text-slate-900">طلبات صرف المستحقات</h3>
+                      <p className="text-muted-foreground font-bold">مراجعة ومعالجة طلبات السحب المقدمة من الموظفين</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {payoutRequests.filter(r => r.status === 'pending').map((request) => (
+                        <div key={request.id} className="bg-slate-50 rounded-[2.5rem] border-2 border-transparent hover:border-amber-400 transition-all p-8 shadow-sm hover:shadow-xl group relative">
+                          <div className="flex justify-between items-start mb-6">
+                            <div className="flex items-center gap-5">
+                              <div className="h-16 w-16 bg-white rounded-2xl flex items-center justify-center text-2xl font-black shadow-sm group-hover:scale-110 transition-transform">
+                                {request.staff?.name?.[0] || 'S'}
+                              </div>
+                              <div>
+                                <p className="font-black text-xl text-slate-900">{request.staff?.name}</p>
+                                <Badge variant="secondary" className="font-bold mt-1">
+                                  {request.staff?.role === 'delivery' ? 'سائق' : request.staff?.role === 'butcher' ? 'جزار' : 'موظف'}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="text-left">
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">المبلغ المطلوب</p>
+                              <p className="text-3xl font-black text-emerald-600">{request.amount.toLocaleString()} ﷼</p>
+                            </div>
+                          </div>
+
+                          <div className="bg-white rounded-2xl p-4 mb-6 flex items-center justify-between text-sm font-bold text-slate-500 shadow-inner">
+                            <span>طريقة الصرف: {request.method === 'bank_transfer' ? 'تحويل بنكي 🏦' : 'نقداً 🧾'}</span>
+                            <span>{new Date(request.createdAt).toLocaleDateString('ar-SA')}</span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <Button
+                              className="h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl font-black text-white shadow-lg"
+                              onClick={() => {
+                                if (request.method === 'cash') {
+                                  setSelectedPayoutForPickup(request);
+                                  setIsPickupDialogOpen(true);
+                                } else {
+                                  handlePayoutMutation.mutate({ id: request.id, status: 'approved', staffId: request.staff_id, amount: request.amount });
+                                }
+                              }}
+                              disabled={handlePayoutMutation.isPending}
+                            >
+                              موافقة وصرف
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              className="h-14 text-rose-500 hover:bg-rose-50 rounded-2xl font-black"
+                              onClick={() => handlePayoutMutation.mutate({ id: request.id, status: 'rejected', staffId: request.staff_id, amount: request.amount })}
+                              disabled={handlePayoutMutation.isPending}
+                            >
+                              رفض الطلب
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+
+                      {payoutRequests.filter(r => r.status === 'pending').length === 0 && (
+                        <div className="col-span-full py-16 bg-slate-50/50 rounded-[3rem] border-4 border-dashed border-slate-200 text-center">
+                          <p className="text-2xl font-black text-slate-300">لا توجد طلبات صرف معلقة حالياً</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Payout History Section */}
+                <Card className="rounded-[3rem] p-10 bg-slate-50 border-none shadow-inner overflow-hidden">
+                  <h3 className="text-2xl font-black text-slate-900 mb-8">سجل العمليات السابقة</h3>
+                  <div className="space-y-4">
+                    {payoutRequests.filter(r => r.status !== 'pending').slice(0, 5).map((request) => (
+                      <div key={request.id} className="bg-white rounded-3xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div className="flex items-center gap-4">
+                          <div className={`h-12 w-12 rounded-2xl flex items-center justify-center font-black ${request.status === 'approved' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                            {request.status === 'approved' ? '✓' : '✕'}
+                          </div>
+                          <div>
+                            <p className="font-black text-slate-900">{request.staff?.name}</p>
+                            <p className="text-xs text-slate-400 font-bold">{new Date(request.createdAt).toLocaleDateString('ar-SA')}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex-1 px-6">
+                          {request.pickupDetails && (
+                            <div className="text-xs bg-slate-50 p-3 rounded-xl border border-dashed border-slate-200">
+                              <p className="font-black text-slate-500 mb-1">تفاصيل الاستلام:</p>
+                              <p className="text-slate-600">📍 {request.pickupDetails.address} | ⏰ {request.pickupDetails.time}</p>
+                            </div>
+                          )}
+                          {!request.pickupDetails && request.method === 'bank_transfer' && (
+                            <span className="text-xs text-slate-400">تحويل بنكي 🏦</span>
+                          )}
+                        </div>
+
+                        <div className="text-left font-black">
+                          <p className={`text-xl ${request.status === 'approved' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {request.amount.toLocaleString()} ﷼
+                          </p>
+                          <Badge variant="outline" className={`mt-1 border-none bg-opacity-10 ${request.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                            {request.status === 'approved' ? 'مكتمل' : 'مرفوض'}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                    {payoutRequests.filter(r => r.status !== 'pending').length === 0 && (
+                      <p className="text-center py-10 text-slate-400 font-bold">لا توجد عمليات سابقة مسجلة</p>
+                    )}
+                  </div>
+                </Card>
+
+                {/* Staff Payroll Table */}
+                <Card className="rounded-[3rem] p-10 bg-white border-none shadow-xl border-t-8 border-indigo-600">
+                  <h3 className="text-2xl font-black mb-8">كشف المحافظ والنشاط</h3>
+                  <div className="space-y-4">
+                    {staffPayrollStats.map((person, i) => (
+                      <div key={i} className="flex flex-col md:flex-row items-center justify-between p-6 bg-slate-50 rounded-[2rem] border-2 border-white hover:bg-white hover:shadow-lg transition-all gap-4">
+                        <div className="flex items-center gap-6 flex-1">
+                          <div className="h-16 w-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center font-black text-2xl shrink-0">
+                            {person.name?.[0]}
+                          </div>
+                          <div>
+                            <p className="font-black text-xl text-slate-900">{person.name}</p>
+                            <p className="text-slate-400 font-bold text-sm">
+                              {person.role === 'delivery' ? 'سائق' : person.role === 'butcher' ? 'جزار' : 'موظف'} | {person.orders?.length || 0} عمليات مكتملة
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 flex-[2] w-full md:w-auto">
+                          <div className="text-center md:text-right">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">الراتب الأساسي</p>
+                            <p className="text-lg font-black text-slate-700">{person.baseSalary?.toLocaleString()} ﷼</p>
+                          </div>
+                          <div className="text-center md:text-right">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">عمولات الأداء</p>
+                            <p className="text-lg font-black text-indigo-600">+{person.commissions?.toLocaleString()} ﷼</p>
+                          </div>
+                          <div className="text-center md:text-right">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">الرصيد الحالي</p>
+                            <p className={`text-lg font-black ${person.wallet_balance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              {person.wallet_balance?.toLocaleString()} ﷼
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="text-left bg-slate-900 px-6 py-3 rounded-2xl min-w-[120px]">
+                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">إجمالي المستحق</p>
+                          <p className="text-xl font-black text-white">{person.totalEarnings?.toLocaleString()} ﷼</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
+                {/* Pickup Details Dialog */}
+                <Dialog open={isPickupDialogOpen} onOpenChange={setIsPickupDialogOpen}>
+                  <DialogContent dir="rtl" className="max-w-xl rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl">
+                    <DialogHeader className="p-8 border-b bg-emerald-600 text-white">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/20">
+                          <MapPin className="w-8 h-8" />
+                        </div>
+                        <div>
+                          <DialogTitle className="text-2xl font-black">تفاصيل الاستلام النقدي</DialogTitle>
+                          <DialogDescription className="text-emerald-100 font-medium">حدد مكان وموعد تسليم المبلغ للموظف</DialogDescription>
+                        </div>
+                      </div>
+                    </DialogHeader>
+
+                    <div className="p-8 space-y-6 bg-slate-50">
+                      {selectedPayoutForPickup && (
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex justify-between items-center mb-4">
+                          <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">المستفيد</p>
+                            <p className="font-black text-lg text-slate-900">{selectedPayoutForPickup.staff?.name}</p>
+                          </div>
+                          <div className="text-left">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">المبلغ</p>
+                            <p className="text-2xl font-black text-emerald-600">{selectedPayoutForPickup.amount} ﷼</p>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label className="font-black text-slate-700 mr-2">عنوان/مكان التسليم</Label>
+                          <Input
+                            value={pickupForm.address}
+                            onChange={e => setPickupForm({ ...pickupForm, address: e.target.value })}
+                            placeholder="مثال: المستودع الرئيسي، مكتب المحاسبة"
+                            className="h-14 rounded-2xl border-slate-200 bg-white font-bold text-lg focus:ring-emerald-500"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="font-black text-slate-700 mr-2">الموعد المقترح</Label>
+                          <Input
+                            value={pickupForm.time}
+                            onChange={e => setPickupForm({ ...pickupForm, time: e.target.value })}
+                            placeholder="مثال: غداً الساعة 2 ظهراً"
+                            className="h-14 rounded-2xl border-slate-200 bg-white font-bold text-lg focus:ring-emerald-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="bg-amber-50 p-5 rounded-2xl border border-amber-100 flex gap-4">
+                        <Bell className="w-6 h-6 text-amber-500 shrink-0" />
+                        <p className="text-xs text-amber-800 font-bold leading-relaxed">
+                          بمجرد التأكيد، سيتم إرسال إشعار فوري للموظف يحتوي على هذه التفاصيل، وسيتم خصم المبلغ من محفظته واعتبار الطلب مكتملاً.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-8 bg-white border-t flex gap-4">
+                      <Button variant="outline" onClick={() => setIsPickupDialogOpen(false)} className="flex-1 h-14 rounded-2xl font-black text-slate-500 border-slate-200">
+                        إلغاء
+                      </Button>
+                      <Button
+                        className="flex-[2] h-14 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-lg shadow-xl shadow-emerald-100"
+                        onClick={() => {
+                          handlePayoutMutation.mutate({
+                            id: selectedPayoutForPickup.id,
+                            status: 'approved',
+                            staffId: selectedPayoutForPickup.staff_id,
+                            amount: selectedPayoutForPickup.amount,
+                            pickupDetails: pickupForm
+                          });
+                          setIsPickupDialogOpen(false);
+                        }}
+                        disabled={handlePayoutMutation.isPending}
+                      >
+                        {handlePayoutMutation.isPending ? <Loader2 className="animate-spin" /> : "تأكيد وإرسال للموظف"}
+                      </Button>
+                    </div>
                   </DialogContent>
                 </Dialog>
               </div>
