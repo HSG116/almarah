@@ -605,7 +605,7 @@ export default function Checkout() {
                                 </div>
 
                                 <Card className="mt-10 bg-white border-2 border-primary/10 shadow-xl shadow-primary/5 rounded-3xl overflow-hidden">
-                                    <div className="bg-primary text-white p-4 text-center font-bold">ملخص الفاتورة النهائية</div>
+                                    <div className="bg-primary text-white p-4 text-center font-bold">ملخص فاتورة المراح</div>
                                     <CardContent className="p-8 space-y-4">
                                         <div className="flex justify-between items-center">
                                             <span className="text-slate-500 font-bold">قيمة المنتجات</span>

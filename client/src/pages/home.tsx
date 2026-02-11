@@ -122,11 +122,11 @@ export default function Home() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 text-primary-foreground text-xs font-bold mb-6">
               <Star className="h-3 w-3 fill-current" />
-              <span>لحوم بلدية طازجة 100%</span>
+              <span>المراح - جودة تستحق الثقة</span>
             </div>
             <h1 className="text-5xl md:text-8xl font-black mb-6 font-heading leading-tight tracking-tighter">
-              طعم الفخامة <br />
-              <span className="text-primary drop-shadow-sm">في كل قطعة</span>
+              المراح <br />
+              <span className="text-primary drop-shadow-sm">طعم الفخامة</span>
             </h1>
             <p className="text-lg md:text-2xl mb-10 text-gray-200 font-medium max-w-lg leading-relaxed">
               نقدم لك أجود أنواع الذبائح المختارة بعناية فائقة، تذبح يومياً وتصلك مغلفة بأعلى المعايير.
@@ -218,7 +218,10 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             <div className="space-y-6">
-              <h2 className="text-3xl font-black text-primary tracking-tighter">ملحمة النعيمي</h2>
+              <div className="flex items-center gap-3 mb-4">
+                <img src="/uploads/LOGO.png" alt="المراح" className="w-16 h-16 object-contain brightness-0 invert opacity-90" />
+                <h2 className="text-3xl font-black text-primary tracking-tighter">المراح</h2>
+              </div>
               <p className="text-gray-400 text-sm leading-relaxed font-medium capitalize">
                 أجود أنواع اللحوم الطازجة والذبائح المختارة بعناية. نلتزم بأعلى معايير الجودة والذبح الإسلامي لضمان مذاق لا يقاوم.
               </p>
@@ -260,7 +263,7 @@ export default function Home() {
           </div>
 
           <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-gray-500 font-bold tracking-tight">
-            <p>© 2025 ملحمة النعيمي الفاخر. جميع الحقوق محفوظة.</p>
+            <p>© 2026 المراح الفاخر. جميع الحقوق محفوظة.</p>
             <div className="flex gap-8">
               <span className="hover:text-white cursor-pointer transition-colors">سياسة الخصوصية</span>
               <span className="hover:text-white cursor-pointer transition-colors">الشروط والأحكام</span>

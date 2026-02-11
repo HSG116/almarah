@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تأكيد حسابك - الملحمة</title>
+    <title>تأكيد حسابك - المراح</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -23,15 +23,15 @@
             border: 1px solid #e5e7eb;
         }
         .header {
-            background-color: #15803d; /* Green 700 */
+            background-color: #B91C1C; /* Red 700 */
             padding: 30px;
             text-align: center;
         }
         .header h1 {
             color: #ffffff;
             margin: 0;
-            font-size: 24px;
-            font-weight: 800;
+            font-size: 28px;
+            font-weight: 900;
         }
         .content {
             padding: 40px 30px;
@@ -49,8 +49,8 @@
             margin-bottom: 24px;
         }
         .otp-box {
-            background-color: #f0fdf4;
-            border: 2px dashed #15803d;
+            background-color: #fef2f2;
+            border: 2px dashed #B91C1C;
             border-radius: 12px;
             padding: 20px;
             text-align: center;
@@ -60,7 +60,7 @@
             font-family: monospace;
             font-size: 32px;
             font-weight: 900;
-            color: #15803d;
+            color: #B91C1C;
             letter-spacing: 4px;
         }
         .footer {
@@ -72,7 +72,7 @@
         }
         .btn {
             display: inline-block;
-            background-color: #15803d;
+            background-color: #B91C1C;
             color: #ffffff;
             text-decoration: none;
             padding: 12px 30px;
@@ -85,11 +85,11 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>الملحمة</h1>
+            <h1>المراح</h1>
         </div>
         <div class="content">
             <div class="h2">مرحباً بك!</div>
-            <div class="p">شكراً لتسجيلك معنا في متجر الملحمة للحوم الطازجة. لإكمال عملية التسجيل وتفعيل حسابك، يرجى استخدام رمز التحقق التالي:</div>
+            <div class="p">شكراً لتسجيلك معنا في متجر المراح للحوم الطازجة. لإكمال عملية التسجيل وتفعيل حسابك، يرجى استخدام رمز التحقق التالي:</div>
             
             <div class="otp-box">
                 <span class="otp-code">{{ .Token }}</span>

@@ -113,15 +113,12 @@ export function setupAuth(app: Express) {
         console.log("🔹 [CREATE-STAFF] Request received", { username: req.body.username, role: req.body.role });
 
         const requestUser = req.user as SelectUser;
-        console.log("🔍 [DEBUG-AUTH] User object:", JSON.stringify(requestUser));
-        console.log("🔍 [DEBUG-AUTH] isAdmin:", requestUser?.isAdmin, "role:", requestUser?.role);
+        const isUserAdmin = requestUser?.isAdmin === true || requestUser?.role === 'admin';
 
-        /*
-        if (requestUser && !requestUser.isAdmin && requestUser.role !== 'admin') {
-            console.warn("⚠️ [DEBUG-AUTH] Blocking possibly unauthorized user...");
-            return res.status(403).json({ message: "DEBUG: Access blocked at create-staff" });
+        if (!requestUser || !isUserAdmin) {
+            console.warn("⚠️ [ADMIN_ONLY] Unauthorized access attempt to create-staff by:", requestUser?.username);
+            return res.status(403).json({ message: "عذراً، هذا الإجراء مخصص للمديرين فقط" });
         }
-        */
 
         try {
             const { username, password, email, phone, name, role, permissions } = req.body;
@@ -183,13 +180,10 @@ export function setupAuth(app: Express) {
         const user = req.user as SelectUser;
         const isUserAdmin = user?.isAdmin === true || (user as any)?.is_admin === true || user?.role === 'admin';
 
-        console.log("🔍 [DEBUG-AUTH] Recent Users Request - user:", user?.username, "isUserAdmin:", isUserAdmin);
-        /*
-        if (user && !isUserAdmin) {
-            console.warn("🚫 [ADMIN_GET_DENIED] user blocked...");
-            return res.status(403).json({ message: "DEBUG: Access blocked at users/recent" });
+        if (!user || !isUserAdmin) {
+            console.warn("🚫 [ADMIN_ACCESS_DENIED] to users/recent by:", user?.username);
+            return res.status(403).json({ message: "غير مصرح لك بالوصول لبيانات المستخدمين" });
         }
-        */
 
         try {
             console.log("🔍 [DEBUG] Attempting to fetch all users...");
@@ -223,13 +217,10 @@ export function setupAuth(app: Express) {
         const user = req.user as SelectUser;
         const isUserAdmin = user?.isAdmin === true || (user as any)?.is_admin === true || user?.role === 'admin';
 
-        console.log("🔍 [DEBUG-AUTH] Promote Staff Request - user:", user?.username, "isUserAdmin:", isUserAdmin);
-        /*
-        if (user && !isUserAdmin) {
-            console.warn("🚫 [ADMIN_POST_DENIED] user blocked...");
-            return res.status(403).json({ message: "DEBUG: Access blocked at promote-staff" });
+        if (!user || !isUserAdmin) {
+            console.warn("🚫 [ADMIN_ACCESS_DENIED] to promote-staff by:", user?.username);
+            return res.status(403).json({ message: "غير مصرح لك بترقية المستخدمين" });
         }
-        */
 
         try {
             const { userId, name, phone, role, permissions } = req.body;

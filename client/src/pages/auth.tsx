@@ -295,12 +295,18 @@ export default function Auth() {
       <div className="relative z-10 flex-1 w-full max-w-7xl mx-auto flex flex-col justify-center px-4 lg:px-12 py-8">
 
         {/* Mobile Header Logo (Visible only on mobile) */}
-        <div className="lg:hidden flex flex-col items-center gap-2 mb-8 w-full mt-10">
-          <div className="w-20 h-20 bg-gradient-to-br from-red-50 to-white rounded-2xl flex items-center justify-center shadow-lg shadow-red-900/5 border border-red-100">
-            <ShieldCheck className="w-10 h-10 text-[#B91C1C]" />
+        <div className="lg:hidden flex flex-col items-center gap-6 mb-12 w-full mt-12">
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="w-40 h-40 flex items-center justify-center relative"
+          >
+            <img src="/uploads/LOGO.png" alt="المراح" className="w-full h-full object-contain drop-shadow-2xl" />
+          </motion.div>
+          <div className="text-center">
+            <h1 className="text-5xl font-black text-zinc-900 tracking-tighter">المراح</h1>
+            <p className="text-base font-bold text-primary tracking-[0.2em] uppercase mt-2">Al Marah Butchery</p>
           </div>
-          <h1 className="text-3xl font-black text-zinc-900 tracking-tight mt-2">الـمـلـحـمـة</h1>
-          <p className="text-sm font-bold text-gray-400">جودة تستحق الثقة</p>
         </div>
 
         {/* Desktop Layout: 2 Columns (Hero Right, Form Left) */}
@@ -315,16 +321,19 @@ export default function Auth() {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             {/* Header: Logo and Title Horizontal row - STRICT RIGHT ALIGNMENT */}
-            <div className="flex flex-row items-center justify-start gap-4 mb-6 w-full select-none">
+            <div className="flex flex-row items-center justify-start gap-8 mb-10 w-full select-none">
               {/* Logo */}
               <div className="relative shrink-0">
-                <ShieldCheck className="w-16 h-16 lg:w-20 lg:h-20 text-[#B91C1C] drop-shadow-xl" />
+                <img src="/uploads/LOGO.png" alt="المراح" className="w-36 h-36 lg:w-44 lg:h-44 object-contain drop-shadow-2xl" />
               </div>
 
               {/* Title (Single Line - Forced) */}
-              <h1 className="text-5xl lg:text-7xl font-black text-zinc-900 leading-none tracking-tight pt-2 whitespace-nowrap">
-                الطعم <span className="text-[#B91C1C]">الأصيل.</span>
-              </h1>
+              <div className="flex flex-col pt-4">
+                <h1 className="text-7xl lg:text-9xl font-black text-zinc-900 leading-none tracking-tighter whitespace-nowrap">
+                  المراح
+                </h1>
+                <p className="text-2xl font-bold text-primary tracking-[0.3em] uppercase mt-4">Al Marah Butchery</p>
+              </div>
             </div>
 
             {/* Description */}

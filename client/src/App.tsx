@@ -20,6 +20,7 @@ import AdminLogin from "@/pages/admin/login";
 import AdminDashboard from "@/pages/admin/dashboard";
 import StaffDashboard from "@/pages/staff/dashboard";
 import Legal from "@/pages/legal";
+import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 
 
 function PageWrapper({ children }: { children: React.ReactNode }) {
@@ -37,98 +38,91 @@ function PageWrapper({ children }: { children: React.ReactNode }) {
 
 
 function Router() {
-  const [location, setLocation] = useLocation();
-  const { user } = useAuth();
-
-  useEffect(() => {
-    if (!user) return;
-
-    // 1. Strictly Confined Staff Roles
-    // These roles are NOT allowed to navigate anywhere except their specific dashboard
-    const role = user.role || 'customer';
-    const isAdmin = role === 'admin' || user.isAdmin === true;
-    const confinedRoles = ['delivery', 'butcher', 'accountant', 'support', 'designer', 'manager'];
-    const isConfinedStaff = confinedRoles.includes(role);
-
-    // 1. Top Admin Logic (The only one allowed to browse store + admin areas)
-    if (isAdmin) {
-      // Just redirect from /auth, otherwise let them roam freely (Home, Products, Admin, etc.)
-      if (location === '/auth') {
-        setLocation('/admin');
-      }
-      return;
-    }
-
-    // 2. Confined Staff Logic (Trapped in their specific role dashboards)
-    if (isConfinedStaff) {
-      const allowedPath = `/${role}`;
-      // STRICT: If they are not in their allowed staff path, kick them back to it
-      if (!location.startsWith(allowedPath)) {
-        setLocation(allowedPath);
-      }
-      return;
-    }
-
-    // 3. Customer Logic
-    if (role === 'customer') {
-      if (location === '/auth') {
-        setLocation('/');
-        return;
-      }
-
-      const isRestricted =
-        location.startsWith('/admin') ||
-        location.startsWith('/staff') ||
-        confinedRoles.some(r => location.startsWith(`/${r}`));
-
-      if (isRestricted) {
-        setLocation('/');
-      }
-    }
-
-  }, [user, location, setLocation]);
+  const [location] = useLocation();
 
   return (
     <AnimatePresence mode="wait" initial={false}>
       <Switch key={location}>
+        {/* Public Routes */}
         <Route path="/" component={Home} />
         <Route path="/products" component={Products} />
         <Route path="/cart" component={Cart} />
         <Route path="/auth" component={Auth} />
-        <Route path="/profile" component={Profile} />
-        <Route path="/checkout" component={Checkout} />
         <Route path="/legal/:type" component={Legal} />
         <Route path="/legal" component={Legal} />
 
-        {/* Admin Routes */}
-        <Route path="/admin/login" component={AdminLogin} />
-        <Route path="/admin/dashboard" component={AdminDashboard} />
-        <Route path="/admin" component={AdminDashboard} />
+        {/* Protected Customer/Generic Routes */}
+        <Route path="/profile">
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/checkout">
+          <ProtectedRoute>
+            <Checkout />
+          </ProtectedRoute>
+        </Route>
 
-        {/* Staff Dedicated Routes */}
+        {/* Admin Routes - Strictly Protected */}
+        <Route path="/admin/login" component={AdminLogin} />
+        <Route path="/admin">
+          <ProtectedRoute requireAdmin>
+            <AdminDashboard />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin/dashboard">
+          <ProtectedRoute requireAdmin>
+            <AdminDashboard />
+          </ProtectedRoute>
+        </Route>
+
+        {/* Staff Dedicated Routes - Role Based Protection */}
         <Route path="/staff">
-          <StaffDashboard />
+          <ProtectedRoute allowedRoles={['delivery', 'butcher', 'accountant', 'support', 'designer', 'manager', 'admin']}>
+            <StaffDashboard />
+          </ProtectedRoute>
         </Route>
+
         <Route path="/delivery">
-          <StaffDashboard forcedRole="delivery" />
+          <ProtectedRoute allowedRoles={['delivery', 'admin']}>
+            <StaffDashboard forcedRole="delivery" />
+          </ProtectedRoute>
         </Route>
+
         <Route path="/butcher">
-          <StaffDashboard forcedRole="butcher" />
+          <ProtectedRoute allowedRoles={['butcher', 'admin']}>
+            <StaffDashboard forcedRole="butcher" />
+          </ProtectedRoute>
         </Route>
+
         <Route path="/accountant">
-          <StaffDashboard forcedRole="accountant" />
+          <ProtectedRoute allowedRoles={['accountant', 'admin']}>
+            <StaffDashboard forcedRole="accountant" />
+          </ProtectedRoute>
         </Route>
+
         <Route path="/support">
-          <StaffDashboard forcedRole="support" />
+          <ProtectedRoute allowedRoles={['support', 'admin']}>
+            <StaffDashboard forcedRole="support" />
+          </ProtectedRoute>
         </Route>
+
         <Route path="/designer">
-          <StaffDashboard forcedRole="designer" />
+          <ProtectedRoute allowedRoles={['designer', 'admin']}>
+            <StaffDashboard forcedRole="designer" />
+          </ProtectedRoute>
         </Route>
+
         <Route path="/manager">
-          <StaffDashboard forcedRole="manager" />
+          <ProtectedRoute allowedRoles={['manager', 'admin']}>
+            <StaffDashboard forcedRole="manager" />
+          </ProtectedRoute>
         </Route>
+
         <Route path="/general-manager">
-          <StaffDashboard forcedRole="admin" />
+          <ProtectedRoute requireAdmin>
+            <StaffDashboard forcedRole="admin" />
+          </ProtectedRoute>
         </Route>
 
         <Route component={NotFound} />

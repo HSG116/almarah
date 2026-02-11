@@ -303,7 +303,7 @@ export default function AdminDashboard() {
           </head>
           <body>
             <div class="header">
-              <div class="logo">ملحمة النعيمي الفاخر</div>
+              <div class="logo">المراح</div>
               <div class="title">إيصال ضريبي مبسط</div>
               <div style="font-size: 10px;">رقم ضريبي: 300012345600003</div>
             </div>
@@ -385,8 +385,8 @@ export default function AdminDashboard() {
             <div class="gold-bar"></div>
             <div class="invoice-header">
               <div class="logo-box">
-                <h1>ملحمة النعيمي</h1>
-                <p>Luxury Butchery</p>
+                <h1>المراح</h1>
+                <p>Al-Marah Butchery</p>
               </div>
               <div class="invoice-meta">
                 <h2>INVOICE</h2>
@@ -400,7 +400,7 @@ export default function AdminDashboard() {
             <div style="display: flex; gap: 80px; margin-bottom: 60px;">
               <div class="info-block">
                 <h4>مُقدّم من</h4>
-                <p>ملحمة النعيمي الفاخر<br/>الرياض، المملكة العربية السعودية<br/>الرقم الضريبي: 300012345600003</p>
+                <p>المراح<br/>الرياض، المملكة العربية السعودية<br/>الرقم الضريبي: 300012345600003</p>
               </div>
               <div class="info-block">
                 <h4>مُقدّم إلى</h4>
@@ -466,7 +466,7 @@ export default function AdminDashboard() {
             </div>
 
             <div class="footer">
-              نتمنى أن نكون قد نلنا استحسانكم. شكراً جزيلاً لثقتكم بملحمة النعيمي الفاخر.
+              نتمنى أن نكون قد نلنا استحسانكم. شكراً جزيلاً لثقتكم بالمراح الفاخر.
             </div>
           </div>
           <script>window.onload = () => { setTimeout(() => { window.print(); }, 500); }</script>
@@ -1531,7 +1531,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50/50 text-right" dir="rtl">
       {/* Mobile Header */}
       <div className="md:hidden bg-white p-4 border-b flex justify-between items-center sticky top-0 z-20 shadow-sm">
-        <h2 className="font-bold text-lg text-primary">لوحة الإدارة</h2>
+        <h2 className="font-black text-xl text-primary font-heading tracking-tighter">المراح</h2>
         <Button variant="ghost" size="icon" onClick={() => setActiveTab("overview")}>
           <LayoutDashboard />
         </Button>
@@ -1539,13 +1539,14 @@ export default function AdminDashboard() {
 
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-white border-l min-h-screen sticky top-0 hidden md:flex flex-col z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-          <div className="p-8 border-b border-gray-100 flex flex-col items-center">
-            <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-4">
-              <LayoutDashboard size={32} />
+        <div className="w-72 bg-white border-l min-h-screen sticky top-0 hidden md:flex flex-col z-10 shadow-[4px_0_24px_rgba(0,0,0,0.05)]">
+          <div className="p-10 border-b border-gray-50 flex flex-col items-center">
+            <div className="relative mb-4 group cursor-pointer">
+              <div className="absolute -inset-2 bg-primary/5 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+              <img src="/uploads/LOGO.png" alt="المراح" className="w-24 h-24 object-contain relative z-10 drop-shadow-md transition-transform group-hover:scale-110" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">لوحة الإدارة</h2>
-            <p className="text-xs text-muted-foreground mt-1 bg-gray-100 px-3 py-1 rounded-full">{user.username}</p>
+            <h2 className="text-3xl font-black text-slate-900 font-heading tracking-tighter">المراح</h2>
+            <p className="text-[10px] font-black tracking-[0.2em] text-primary uppercase mt-1 bg-primary/5 px-4 py-1 rounded-full">Admin Portal</p>
           </div>
 
           <nav className="flex-1 p-4 space-y-2">
@@ -4587,7 +4588,7 @@ export default function AdminDashboard() {
                               <div className="group space-y-3">
                                 <Label className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">اسم المنشأة التجاري</Label>
                                 <Input
-                                  defaultValue={settingsMap.contact_details?.store_name || "ملحمة النعيمي الفاخر"}
+                                  defaultValue={settingsMap.contact_details?.store_name || "المراح الفاخر"}
                                   onBlur={(e) => updateSettingsMutation.mutate({ contact_details: { ...settingsMap.contact_details, store_name: e.target.value } })}
                                   className="h-16 rounded-2xl bg-slate-50 border-none font-bold text-lg shadow-inner group-focus-within:bg-white group-focus-within:ring-2 ring-blue-500/20 transition-all"
                                 />
@@ -4616,7 +4617,7 @@ export default function AdminDashboard() {
                                 <div className="relative">
                                   <Mail className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 w-5 h-5" />
                                   <Input
-                                    defaultValue={settingsMap.contact_details?.email || "info@alnaemi.com"}
+                                    defaultValue={settingsMap.contact_details?.email || "info@almarah.com"}
                                     onBlur={(e) => updateSettingsMutation.mutate({ contact_details: { ...settingsMap.contact_details, email: e.target.value } })}
                                     className="h-16 rounded-2xl bg-slate-50 border-none font-bold text-lg shadow-inner pr-14 group-focus-within:bg-white group-focus-within:ring-2 ring-blue-500/20 transition-all"
                                   />

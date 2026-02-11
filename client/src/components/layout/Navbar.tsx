@@ -15,8 +15,15 @@ export function Navbar() {
     <nav className="hidden md:block sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link href="/" className="text-3xl font-bold text-primary font-heading tracking-tight cursor-pointer">
-            الملحمة
+          <Link href="/" className="flex items-center gap-4 cursor-pointer group">
+            <img
+              src="/uploads/LOGO.png"
+              alt="المراح"
+              className="w-20 h-20 md:w-28 md:h-28 object-contain transition-transform duration-300 group-hover:scale-110 drop-shadow-md"
+            />
+            <span className="text-4xl md:text-5xl font-black text-primary font-heading tracking-tighter drop-shadow-sm group-hover:text-primary/90 transition-colors">
+              المراح
+            </span>
           </Link>
           <div className="flex items-center gap-6 text-sm font-medium">
             <Link href="/" className={`relative cursor-pointer hover:text-primary transition-colors py-2 ${location === '/' ? 'text-primary' : 'text-muted-foreground'}`}>

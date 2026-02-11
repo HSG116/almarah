@@ -41,7 +41,7 @@ export default function Cart() {
       <Navbar />
 
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8 font-heading">سلة المشتريات</h1>
+        <h1 className="text-3xl font-bold mb-8 font-heading">سلة المراح</h1>
 
         {cartItems.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -122,7 +122,7 @@ const getPremiumInvoiceHtml = (order: any, type: 'a4' | 'receipt') => {
         </head>
         <body>
           <div class="header">
-            <div class="logo">ملحمة النعيمي الفاخر</div>
+            <div class="logo">المراح الفاخر</div>
             <div class="title">إيصال ضريبي مبسط</div>
             <div style="font-size: 10px;">رقم ضريبي: 300012345600003</div>
           </div>
@@ -204,7 +204,7 @@ const getPremiumInvoiceHtml = (order: any, type: 'a4' | 'receipt') => {
           <div class="gold-bar"></div>
           <div class="invoice-header">
             <div class="logo-box">
-              <h1>ملحمة النعيمي</h1>
+              <h1>المراح</h1>
               <p>Luxury Butchery</p>
             </div>
             <div class="invoice-meta">
@@ -219,7 +219,7 @@ const getPremiumInvoiceHtml = (order: any, type: 'a4' | 'receipt') => {
           <div style="display: flex; gap: 80px; margin-bottom: 60px;">
             <div class="info-block">
               <h4>مُقدّم من</h4>
-              <p>ملحمة النعيمي الفاخر<br/>الرياض، المملكة العربية السعودية<br/>الرقم الضريبي: 300012345600003</p>
+              <p>المراح الفاخر<br/>الرياض، المملكة العربية السعودية<br/>الرقم الضريبي: 300012345600003</p>
             </div>
             <div class="info-block">
               <h4>مُقدّم إلى</h4>
@@ -285,7 +285,7 @@ const getPremiumInvoiceHtml = (order: any, type: 'a4' | 'receipt') => {
           </div>
 
           <div class="footer">
-            نتمنى أن نكون قد نلنا استحسانكم. شكراً جزيلاً لثقتكم بملحمة النعيمي الفاخر.
+            نتمنى أن نكون قد نلنا استحسانكم. شكراً جزيلاً لثقتكم بالمراح.
           </div>
         </div>
         <script>window.onload = () => { setTimeout(() => { window.print(); }, 500); }</script>

@@ -27,7 +27,16 @@ export async function registerRoutes(
   }
 
   app.post("/api/upload", (req, res, next) => {
-    console.log("🚀 [UPLOAD_DEBUG] Request received at /api/upload");
+    // SECURITY: Only staff and admins can upload files
+    const user = req.user as SelectUser;
+    const isStaffOrAdmin = user && (user.isAdmin || (user.role && user.role !== 'customer'));
+
+    if (!req.isAuthenticated() || !isStaffOrAdmin) {
+      console.warn("🚫 [UPLOAD_DENIED] Unauthorized upload attempt");
+      return res.status(403).json({ message: "غير مصرح لك برفع الصور" });
+    }
+
+    console.log("🚀 [UPLOAD_DEBUG] Authorized upload request");
     next();
   }, upload.single("image"), async (req, res) => {
     console.log("📁 [UPLOAD_DEBUG] Multer processed. File:", req.file ? req.file.originalname : "NONE");

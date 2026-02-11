@@ -36,8 +36,8 @@ export default function AdminLogin() {
 
             <Card className="w-full max-w-md shadow-xl border-gray-100">
                 <CardHeader className="space-y-1 text-center pb-8 border-b border-gray-50 bg-white/50 rounded-t-xl">
-                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <Lock className="w-8 h-8 text-primary" />
+                    <div className="flex items-center justify-center mx-auto mb-6">
+                        <img src="/uploads/LOGO.png" alt="المراح" className="w-32 h-32 object-contain drop-shadow-md" />
                     </div>
                     <CardTitle className="text-2xl font-bold text-gray-900">لوحة الإدارة</CardTitle>
                     <CardDescription className="text-base">
