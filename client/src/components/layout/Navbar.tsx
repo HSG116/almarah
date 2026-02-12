@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { ShoppingCart, Menu, Search, User } from "lucide-react";
+import { ShoppingCart, Menu, Search, User, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
@@ -10,6 +10,11 @@ export function Navbar() {
   const [location] = useLocation();
   const { user } = useAuth();
   const { items } = useCart();
+
+  const isStaff = user && user.role && user.role !== "customer";
+  const staffHref = isStaff && user
+    ? (user.role === "admin" ? "/admin" : `/${user.role}`)
+    : null;
 
   return (
     <nav className="hidden md:block sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -46,6 +51,18 @@ export function Navbar() {
                 />
               )}
             </Link>
+            {staffHref && (
+              <Link href={staffHref} className={`relative cursor-pointer hover:text-primary transition-colors py-2 ${location === staffHref ? 'text-primary' : 'text-muted-foreground'}`}>
+                محطتي
+                {location === staffHref && (
+                  <motion.div
+                    layoutId="navActive"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </Link>
+            )}
           </div>
         </div>
 

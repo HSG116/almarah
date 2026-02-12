@@ -5,8 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, MapPin, LogOut, Loader2, Package, Map as MapIcon } from "lucide-react";
-import { motion } from "framer-motion";
+import { User, MapPin, LogOut, Loader2, Package, Map as MapIcon, ShoppingCart, ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
@@ -102,13 +102,22 @@ export default function Profile() {
     }
   };
 
-  const { data: orders = [], isLoading: ordersLoading } = useQuery<Order[]>({
+  const { data: orders = [], isLoading: ordersLoading } = useQuery<(Order & { items: any[] })[]>({
     queryKey: ["/api/orders", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
       const { data, error } = await supabase
         .from('orders')
-        .select(`*, order_items (*)`)
+        .select(`
+          *,
+          order_items (
+            *,
+            products (
+              image,
+              unit
+            )
+          )
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -116,18 +125,38 @@ export default function Profile() {
 
       return (data || []).map((order: any) => ({
         ...order,
-        createdAt: order.created_at, // Map snake_case to camelCase
-        items: order.order_items
+        createdAt: order.created_at,
+        items: (order.order_items || []).map((item: any) => ({
+          ...item,
+          product: item.products
+        }))
       }));
     },
     enabled: !!user,
   });
+
+  const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user) {
       setLocation("/auth");
     }
   }, [user, setLocation]);
+
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return { label: 'مكتمل', color: 'bg-green-100 text-green-700', icon: '✅' };
+      case 'shipping':
+        return { label: 'جاري التوصيل', color: 'bg-blue-100 text-blue-700', icon: '🚚' };
+      case 'cancelled':
+        return { label: 'ملغي', color: 'bg-red-100 text-red-700', icon: '❌' };
+      case 'preparing':
+        return { label: 'قيد التجهيز', color: 'bg-orange-100 text-orange-700', icon: '👨‍🍳' };
+      default:
+        return { label: 'قيد الانتظار', color: 'bg-gray-100 text-gray-700', icon: '⏳' };
+    }
+  };
 
   if (!user) return null;
 
@@ -143,67 +172,205 @@ export default function Profile() {
 
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-4 mb-8">
-          <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+          <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-primary border-2 border-primary/20 shadow-inner">
             <User className="h-8 w-8" />
           </div>
           <div>
             <h1 className="text-2xl font-bold font-heading">مرحباً، {user.username}</h1>
-            <p className="text-muted-foreground">{user.phone}</p>
+            <p className="text-muted-foreground font-medium">{user.phone}</p>
           </div>
         </div>
 
-        <Tabs defaultValue="address" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8 h-12">
-            <TabsTrigger value="orders">الطلبات</TabsTrigger>
-            <TabsTrigger value="address">العناوين</TabsTrigger>
-            <TabsTrigger value="settings">الإعدادات</TabsTrigger>
+        <Tabs defaultValue="orders" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-8 h-12 bg-white/50 backdrop-blur-sm p-1 rounded-xl shadow-sm border border-white/20">
+            <TabsTrigger value="orders" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-300">الطلبات</TabsTrigger>
+            <TabsTrigger value="address" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-300">العناوين</TabsTrigger>
+            <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-300">الإعدادات</TabsTrigger>
           </TabsList>
 
           <TabsContent value="orders">
-            <div className="space-y-4">
+            <div className="space-y-6">
               {ordersLoading ? (
                 <div className="space-y-4">
-                  <Skeleton className="h-24 w-full rounded-2xl" />
-                  <Skeleton className="h-24 w-full rounded-2xl" />
+                  <Skeleton className="h-32 w-full rounded-3xl" />
+                  <Skeleton className="h-32 w-full rounded-3xl" />
                 </div>
               ) : orders.length > 0 ? (
-                orders.map((order) => (
-                  <Card key={order.id} className="border-none shadow-sm hover:shadow-md transition-shadow">
-                    <CardContent className="p-4 flex justify-between items-center">
-                      <div>
-                        <div className="flex items-center gap-3 mb-1">
-                          <span className="font-bold">طلب #{order.id}</span>
-                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${order.status === 'completed' ? 'bg-green-100 text-green-700' :
-                              order.status === 'shipping' ? 'bg-blue-100 text-blue-700' :
-                                order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                                  order.status === 'preparing' ? 'bg-orange-100 text-orange-700' :
-                                    'bg-gray-100 text-gray-700'
-                            }`}>
-                            {order.status === 'completed' ? 'مكتمل ✅' :
-                              order.status === 'shipping' ? 'جاري التوصيل 🚚' :
-                                order.status === 'cancelled' ? 'ملغي ❌' :
-                                  order.status === 'preparing' ? 'قيد التجهيز 👨‍🍳' :
-                                    'قيد الانتظار ⏳'}
-                          </span>
+                orders.map((order) => {
+                  const statusInfo = getStatusInfo(order.status);
+                  const isExpanded = expandedOrder === order.id;
+
+                  return (
+                    <Card key={order.id} className={`overflow-hidden border-none shadow-sm transition-all duration-500 rounded-3xl ${isExpanded ? 'ring-2 ring-primary/20 shadow-lg' : 'hover:shadow-md'}`}>
+                      <CardContent className="p-0">
+                        {/* Summary Header */}
+                        <div
+                          className="p-5 flex justify-between items-center cursor-pointer hover:bg-muted/5 transition-colors"
+                          onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
+                        >
+                          <div className="flex gap-4 items-center">
+                            <div className="h-14 w-14 rounded-2xl bg-muted/50 flex items-center justify-center text-primary relative group overflow-hidden">
+                              <Package className="h-7 w-7" />
+                              <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-3 mb-1">
+                                <span className="font-bold text-lg">طلب #{order.id}</span>
+                                <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${statusInfo.color}`}>
+                                  {statusInfo.icon} {statusInfo.label}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                                <span className="flex items-center gap-1">
+                                  {new Date(order.createdAt!).toLocaleDateString('ar-SA', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                </span>
+                                <span className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+                                <span>{new Date(order.createdAt!).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
+                                <span className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+                                <span>{order.items.length} منتجات</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-left flex flex-col items-end gap-1">
+                            <p className="font-black text-xl text-primary">{order.total} <span className="text-xs font-bold mr-0.5">ر.س</span></p>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 text-[11px] font-bold text-primary bg-primary/5 hover:bg-primary/10 rounded-full px-4 gap-2"
+                            >
+                              {isExpanded ? 'إخفاء التفاصيل' : 'عرض التفاصيل'}
+                              <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
+                                <ChevronDown className="h-3 w-3" />
+                              </motion.div>
+                            </Button>
+                          </div>
                         </div>
-                        <p className="text-sm text-muted-foreground">{new Date(order.createdAt!).toLocaleDateString('ar-SA')}</p>
-                      </div>
-                      <div className="text-left">
-                        <p className="font-bold text-primary">{order.total} ر.س</p>
-                        <Button variant="link" className="h-auto p-0 text-xs">التفاصيل</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+
+                        {/* Expandable Details */}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.3, ease: "easeInOut" }}
+                              className="border-t border-muted/30 bg-muted/5 overflow-hidden"
+                            >
+                              <div className="p-6 space-y-6">
+                                {/* Order Timeline or Basic Info */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-5 rounded-2xl shadow-sm border border-muted/20">
+                                  <div>
+                                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">تفاصيل التوصيل</h4>
+                                    <div className="flex gap-3 items-start">
+                                      <MapPin className="h-4 w-4 text-primary mt-0.5" />
+                                      <p className="text-sm font-medium leading-relaxed">{order.address}</p>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">الدفع والملاحظات</h4>
+                                    <div className="space-y-2">
+                                      <p className="text-sm font-bold flex justify-between">
+                                        <span className="text-muted-foreground">طريقة الدفع:</span>
+                                        <span>{order.paymentMethod === 'cash' ? 'كاش عند الاستلام' : 'دفع إلكتروني'}</span>
+                                      </p>
+                                      {order.notes && (
+                                        <div className="pt-2">
+                                          <p className="text-[10px] font-bold text-muted-foreground mb-1">ملاحظات الطلب:</p>
+                                          <p className="text-xs italic bg-muted/50 p-2 rounded-lg">{order.notes}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Products List */}
+                                <div className="space-y-3">
+                                  <h4 className="text-sm font-bold flex items-center gap-2 mr-1">
+                                    <ShoppingCart className="h-4 w-4 text-primary" />
+                                    المنتجات ({order.items.length})
+                                  </h4>
+                                  <div className="space-y-3">
+                                    {order.items.map((item: any, idx: number) => (
+                                      <div key={idx} className="flex gap-4 bg-white p-4 rounded-2xl shadow-sm border border-muted/10 group hover:border-primary/20 transition-colors">
+                                        <div className="h-20 w-20 rounded-xl overflow-hidden bg-muted flex-shrink-0 shadow-sm">
+                                          <img
+                                            src={item.product?.image || "/uploads/LOGO.png"}
+                                            alt={item.productName}
+                                            className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                          />
+                                        </div>
+                                        <div className="flex-1 flex justify-between items-center">
+                                          <div className="space-y-1">
+                                            <h5 className="font-bold text-foreground text-base">{item.productName}</h5>
+                                            <p className="text-xs font-medium text-muted-foreground">
+                                              {item.quantity} × {item.price} ر.س / {item.product?.unit || 'حبة'}
+                                            </p>
+
+                                            {/* Special Options Badge */}
+                                            <div className="flex flex-wrap gap-1.5 mt-2">
+                                              {item.cutting && (
+                                                <span className="text-[9px] font-bold bg-secondary/30 text-secondary-foreground px-2 py-0.5 rounded-full ring-1 ring-secondary/20">
+                                                  التقطيع: {item.cutting}
+                                                </span>
+                                              )}
+                                              {item.packaging && (
+                                                <span className="text-[9px] font-bold bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full ring-1 ring-amber-200">
+                                                  التغليف: {item.packaging}
+                                                </span>
+                                              )}
+                                            </div>
+                                          </div>
+                                          <div className="text-left font-black text-primary text-lg">
+                                            {item.price * item.quantity} <span className="text-[10px] font-bold">ر.س</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* Footer Action */}
+                                <div className="pt-2 flex justify-end">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="rounded-full font-bold text-xs px-6 hover:bg-primary hover:text-white transition-all shadow-sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      // Could add reorder logic here
+                                    }}
+                                  >
+                                    إعادة طلب
+                                  </Button>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </CardContent>
+                    </Card>
+                  );
+                })
               ) : (
-                <div className="text-center py-10 text-muted-foreground bg-white rounded-2xl shadow-sm flex flex-col items-center gap-2">
-                  <Package className="h-12 w-12 opacity-20" />
-                  <p>لا توجد طلبات سابقة بعد</p>
-                  <Button variant="link" onClick={() => setLocation("/products")}>ابدأ التسوق الآن</Button>
+                <div className="text-center py-16 text-muted-foreground bg-white rounded-[40px] shadow-sm flex flex-col items-center gap-4 border-2 border-dashed border-muted/30">
+                  <div className="h-20 w-20 rounded-full bg-muted/20 flex items-center justify-center">
+                    <Package className="h-10 w-10 opacity-30" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-lg text-foreground">لا توجد طلبات سابقة بعد</p>
+                    <p className="text-xs">ابدأ تسوق أشهى الذبائح الآن</p>
+                  </div>
+                  <Button
+                    className="rounded-full px-10 font-bold shadow-lg shadow-primary/20"
+                    onClick={() => setLocation("/products")}
+                  >
+                    ابدأ التسوق الآن
+                  </Button>
                 </div>
               )}
             </div>
           </TabsContent>
+
 
           <TabsContent value="address">
             <Card className="border-none shadow-sm mb-4">
