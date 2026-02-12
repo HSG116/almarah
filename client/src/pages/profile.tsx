@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, MapPin, LogOut, Loader2, Package, Map as MapIcon, ShoppingCart, ChevronDown } from "lucide-react";
+import { User, MapPin, LogOut, Loader2, Package, Map as MapIcon, ShoppingCart, ChevronDown, ClipboardCheck, Settings2, Shield, Lock, UserCircle, Mail, Phone, Building, Navigation, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
@@ -373,152 +373,316 @@ export default function Profile() {
 
 
           <TabsContent value="address">
-            <Card className="border-none shadow-sm mb-4">
-              <CardContent className="p-4">
-                <div className="flex gap-4 items-start">
-                  <div className="bg-muted/50 p-3 rounded-lg h-fit">
-                    <MapPin className="h-6 w-6 text-primary" />
-                  </div>
-                  <div className="flex-1 space-y-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-bold mb-1">العنوان الحالي</h3>
-                        {!isEditingAddress && (
-                          <p className="text-sm text-muted-foreground whitespace-pre-line">
-                            {user.address ? user.address : "لم يتم تحديد عنوان بعد"}
-                          </p>
-                        )}
-                      </div>
-                      {!isEditingAddress && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setIsEditingAddress(true)}
-                        >
-                          {user.address ? "تعديل العنوان" : "إضافة عنوان"}
-                        </Button>
-                      )}
+            <div className="space-y-6">
+              <Card className="border-none shadow-sm overflow-hidden rounded-[32px] bg-white">
+                <div className="h-2 bg-primary/10 w-full" />
+                <CardContent className="p-8">
+                  <div className="flex flex-col md:flex-row gap-8 items-start">
+                    <div className="h-20 w-20 rounded-3xl bg-primary/5 flex items-center justify-center text-primary border border-primary/10 shadow-sm shrink-0">
+                      <Navigation className="h-10 w-10" />
                     </div>
 
-                    {isEditingAddress && (
-                      <div className="space-y-6 pt-4 border-t animate-in fade-in slide-in-from-top-4 duration-300">
-                        {/* Address Form Fields */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label>المدينة</Label>
-                            <Input
-                              placeholder="مثال: الرياض"
-                              value={city}
-                              onChange={(e) => setCity(e.target.value)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>الحي</Label>
-                            <Input
-                              placeholder="مثال: الملقا"
-                              value={district}
-                              onChange={(e) => setDistrict(e.target.value)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>اسم الشارع</Label>
-                            <Input
-                              placeholder="أدخل اسم الشارع"
-                              value={street}
-                              onChange={(e) => setStreet(e.target.value)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>رقم المبنى / العمارة</Label>
-                            <Input
-                              placeholder="مثال: 12 أو عمارة أ"
-                              value={building}
-                              onChange={(e) => setBuilding(e.target.value)}
-                            />
-                          </div>
+                    <div className="flex-1 space-y-6 w-full">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h2 className="text-xl font-bold mb-1 font-heading">عنوان التوصيل الرئيسي</h2>
+                          <p className="text-sm text-muted-foreground">هذا هو العنوان الذي سيتم استخدامه لتوصيل ذبائحك</p>
                         </div>
-
-                        <div className="space-y-2">
-                          <Label>وصف إضافي / أقرب معلم</Label>
-                          <Textarea
-                            placeholder="مثال: بجوار المسجد، البوابة السوداء..."
-                            value={landmark}
-                            onChange={(e) => setLandmark(e.target.value)}
-                          />
-                        </div>
-
-                        {/* Map Picker */}
-                        <div className="pt-2">
-                          <MapPicker
-                            location={gpsLocation}
-                            onLocationSelect={(lat, lng) => setGpsLocation({ lat, lng })}
-                          />
-                        </div>
-
-                        <div className="flex gap-2 justify-end pt-4 border-t">
-                          <Button
-                            variant="ghost"
-                            onClick={() => setIsEditingAddress(false)}
-                            disabled={isSavingAddress}
-                          >
-                            إلغاء
-                          </Button>
-                          <Button
-                            onClick={handleSaveAddress}
-                            disabled={isSavingAddress}
-                            className="px-8"
-                          >
-                            {isSavingAddress ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                              <MapIcon className="mr-2 h-4 w-4" />
-                            )}
-                            حفظ العنوان
-                          </Button>
-                        </div>
+                        {!isEditingAddress && (
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="rounded-full h-10 px-6 font-bold hover:bg-primary hover:text-white transition-all duration-300 border-primary/20"
+                              onClick={() => {
+                                navigator.clipboard.writeText(user.address || "");
+                                toast({ title: "تم نسخ العنوان", description: "يمكنك الآن مشاركته بسهولة" });
+                              }}
+                            >
+                              <ClipboardCheck className="ml-2 h-4 w-4" />
+                              نسخ
+                            </Button>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              className="rounded-full h-10 px-6 font-bold shadow-lg shadow-primary/20"
+                              onClick={() => setIsEditingAddress(true)}
+                            >
+                              {user.address ? "تعديل" : "إضافة عنوان"}
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    )}
+
+                      {!isEditingAddress ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          <div className="p-4 rounded-2xl bg-muted/30 border border-muted/20 hover:border-primary/20 transition-colors">
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">المدينة والحي</p>
+                            <p className="font-bold flex items-center gap-2">
+                              <Building className="h-3.5 w-3.5 text-primary" />
+                              {user.city || "غير محدد"} / {user.district || "غير محدد"}
+                            </p>
+                          </div>
+                          <div className="p-4 rounded-2xl bg-muted/30 border border-muted/20 hover:border-primary/20 transition-colors">
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">الشارع والمبنى</p>
+                            <p className="font-bold">
+                              {user.street || "غير محدد"} {user.building ? `، مبنى ${user.building}` : ""}
+                            </p>
+                          </div>
+                          <div className="p-4 rounded-2xl bg-muted/30 border border-muted/20 hover:border-primary/20 transition-colors md:col-span-2 lg:col-span-1">
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">أقرب معلم</p>
+                            <p className="font-bold truncate">
+                              {user.landmark || "لا توجد علامات مميزة"}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-6 pt-2 animate-in fade-in slide-in-from-top-4 duration-500">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-xs font-bold mr-1">المدينة</Label>
+                              <Input
+                                placeholder="مثال: الرياض"
+                                value={city}
+                                className="rounded-xl h-12 bg-muted/20 border-muted/30 focus:border-primary/50"
+                                onChange={(e) => setCity(e.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-xs font-bold mr-1">الحي</Label>
+                              <Input
+                                placeholder="مثال: الملقا"
+                                value={district}
+                                className="rounded-xl h-12 bg-muted/20 border-muted/30 focus:border-primary/50"
+                                onChange={(e) => setDistrict(e.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-xs font-bold mr-1">اسم الشارع</Label>
+                              <Input
+                                placeholder="أدخل اسم الشارع"
+                                value={street}
+                                className="rounded-xl h-12 bg-muted/20 border-muted/30 focus:border-primary/50"
+                                onChange={(e) => setStreet(e.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-xs font-bold mr-1">رقم المبنى / العمارة</Label>
+                              <Input
+                                placeholder="مثال: 12 أو عمارة أ"
+                                value={building}
+                                className="rounded-xl h-12 bg-muted/20 border-muted/30 focus:border-primary/50"
+                                onChange={(e) => setBuilding(e.target.value)}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-xs font-bold mr-1">وصف إضافي / أقرب معلم</Label>
+                            <Textarea
+                              placeholder="مثال: بجوار المسجد، البوابة السوداء..."
+                              value={landmark}
+                              className="rounded-xl min-h-[100px] bg-muted/20 border-muted/30 focus:border-primary/50"
+                              onChange={(e) => setLandmark(e.target.value)}
+                            />
+                          </div>
+
+                          <div className="pt-2 rounded-3xl overflow-hidden border border-muted/20 shadow-inner">
+                            <MapPicker
+                              location={gpsLocation}
+                              onLocationSelect={(lat, lng) => setGpsLocation({ lat, lng })}
+                            />
+                          </div>
+
+                          <div className="flex gap-3 justify-end pt-6 border-t font-bold">
+                            <Button
+                              variant="ghost"
+                              className="rounded-full px-8 h-12"
+                              onClick={() => setIsEditingAddress(false)}
+                              disabled={isSavingAddress}
+                            >
+                              إلغاء
+                            </Button>
+                            <Button
+                              onClick={handleSaveAddress}
+                              disabled={isSavingAddress}
+                              className="rounded-full px-12 h-12 shadow-lg shadow-primary/30 font-black"
+                            >
+                              {isSavingAddress ? (
+                                <Loader2 className="ml-2 h-5 w-5 animate-spin" />
+                              ) : (
+                                <MapIcon className="ml-2 h-5 w-5" />
+                              )}
+                              حفظ ومزامنة العنوان
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Tips Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-primary/5 p-5 rounded-3xl border border-primary/10 flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center text-primary shadow-sm">
+                    <Star className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm">سرعة التوصيل</h4>
+                    <p className="text-[10px] text-muted-foreground">تأكد من دقة العنوان وموقع الـ GPS لضمان وصول مندوبنا بأسرع وقت.</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="bg-secondary/5 p-5 rounded-3xl border border-secondary/10 flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center text-secondary shadow-sm">
+                    <Shield className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm">خصوصية بياناتك</h4>
+                    <p className="text-[10px] text-muted-foreground">بيانات عنوانك مشفرة ومؤمنة تماماً، وتستخدم فقط لأغراض التوصيل.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="settings">
-            <Card className="border-none shadow-sm">
-              <CardContent className="p-6 space-y-4">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>اسم المستخدم</Label>
-                    <Input defaultValue={user.username} disabled />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>البريد الإلكتروني</Label>
-                    <Input defaultValue={user.email} disabled />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>رقم الجوال</Label>
-                    <Input defaultValue={user.phone} disabled />
-                  </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Profile Card Summary */}
+              <Card className="border-none shadow-sm rounded-[32px] bg-white overflow-hidden h-fit">
+                <div className="bg-gradient-to-br from-primary via-primary/80 to-primary/60 h-32 p-6 flex flex-col justify-end">
+                  <div className="absolute top-4 right-4 h-24 w-24 bg-white/10 rounded-full blur-2xl" />
                 </div>
+                <CardContent className="px-6 pb-8 -mt-12 text-center">
+                  <div className="relative inline-block mb-4">
+                    <div className="h-24 w-24 rounded-full bg-white p-1.5 shadow-xl mx-auto">
+                      <div className="h-full w-full rounded-full bg-primary/10 flex items-center justify-center text-primary border-2 border-primary/5">
+                        <UserCircle className="h-12 w-12" />
+                      </div>
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-green-500 border-4 border-white flex items-center justify-center" title="حساب موثق">
+                      <Shield className="h-4 w-4 text-white" />
+                    </div>
+                  </div>
 
-                <div className="pt-4 border-t mt-4">
-                  <Button
-                    variant="ghost"
-                    className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => logoutMutation.mutate()}
-                    disabled={logoutMutation.isPending}
-                  >
-                    {logoutMutation.isPending ? (
-                      <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <LogOut className="ml-2 h-4 w-4" />
-                    )}
-                    تسجيل الخروج
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                  <h3 className="text-xl font-bold font-heading">{user.username}</h3>
+                  <p className="text-xs text-muted-foreground mb-6">عضو في المراح منذ {new Date(user.createdAt!).getFullYear()}</p>
+
+                  <div className="space-y-4 text-right">
+                    <div className="p-3 rounded-2xl bg-muted/30 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-white text-primary shadow-sm">
+                          <Star className="h-4 w-4" />
+                        </div>
+                        <span className="text-sm font-bold">اكتمال الملف</span>
+                      </div>
+                      <span className="text-xs font-black text-primary">85%</span>
+                    </div>
+                    <div className="w-full bg-muted/50 h-1.5 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: "85%" }}
+                        transition={{ duration: 1, delay: 0.5 }}
+                        className="bg-primary h-full rounded-full"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Main Settings Body */}
+              <div className="lg:col-span-2 space-y-6">
+                <Card className="border-none shadow-sm rounded-[32px] bg-white overflow-hidden">
+                  <div className="p-8 space-y-8">
+                    {/* Public Profile Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Settings2 className="h-5 w-5 text-primary" />
+                        <h4 className="font-bold text-lg">معلومات الحساب</h4>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2 p-4 rounded-2xl bg-muted/20 border border-muted/30 group hover:bg-white hover:border-primary/20 transition-all duration-300">
+                          <div className="flex items-center gap-3 text-muted-foreground mb-1">
+                            <User className="h-4 w-4" />
+                            <Label className="text-[10px] font-bold uppercase tracking-wider">اسم المستخدم</Label>
+                          </div>
+                          <p className="font-bold text-foreground px-1">{user.username}</p>
+                        </div>
+
+                        <div className="space-y-2 p-4 rounded-2xl bg-muted/20 border border-muted/30 group hover:bg-white hover:border-primary/20 transition-all duration-300">
+                          <div className="flex items-center gap-3 text-muted-foreground mb-1">
+                            <Mail className="h-4 w-4" />
+                            <Label className="text-[10px] font-bold uppercase tracking-wider">البريد الإلكتروني</Label>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <p className="font-bold text-foreground px-1">{user.email}</p>
+                            <span className="text-[9px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-lg">موثق</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 p-4 rounded-2xl bg-muted/20 border border-muted/30 group hover:bg-white hover:border-primary/20 transition-all duration-300 md:col-span-2">
+                          <div className="flex items-center gap-3 text-muted-foreground mb-1">
+                            <Phone className="h-4 w-4" />
+                            <Label className="text-[10px] font-bold uppercase tracking-wider">رقم الجوال النشط</Label>
+                          </div>
+                          <p className="font-bold text-foreground px-1">{user.phone}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Security Section */}
+                    <div className="space-y-4 pt-4 border-t border-muted/30">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lock className="h-5 w-5 text-primary" />
+                        <h4 className="font-bold text-lg">الأمان والخصوصية</h4>
+                      </div>
+
+                      <div className="flex flex-col gap-3">
+                        <Button variant="outline" className="justify-between h-14 rounded-2xl font-bold px-6 border-muted-foreground/10 hover:border-primary/30 group">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                              <Shield className="h-4 w-4" />
+                            </div>
+                            <span>تغيير كلمة المرور</span>
+                          </div>
+                          <ChevronDown className="h-4 w-4 rotate-270 opacity-50 group-hover:opacity-100" />
+                        </Button>
+
+                        <Button variant="outline" className="justify-between h-14 rounded-2xl font-bold px-6 border-muted-foreground/10 hover:border-primary/30 group">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-lg bg-orange-100 text-orange-600">
+                              <Lock className="h-4 w-4" />
+                            </div>
+                            <span>المصادقة الثنائية</span>
+                          </div>
+                          <span className="text-[10px] font-bold text-muted-foreground bg-muted h-6 flex items-center px-3 rounded-full">قريباً</span>
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Action Bar */}
+                    <div className="pt-8 border-t border-muted/30 mt-4 flex flex-col md:flex-row gap-4">
+                      <Button
+                        variant="ghost"
+                        className="flex-1 h-14 rounded-2xl font-bold group hover:bg-red-50 hover:text-destructive overflow-hidden relative"
+                        onClick={() => logoutMutation.mutate()}
+                        disabled={logoutMutation.isPending}
+                      >
+                        {logoutMutation.isPending ? (
+                          <Loader2 className="ml-2 h-5 w-5 animate-spin" />
+                        ) : (
+                          <LogOut className="ml-2 h-5 w-5 text-destructive group-hover:scale-110 transition-transform" />
+                        )}
+                        تسجيل الخروج من الحساب
+                        <div className="absolute inset-0 bg-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
