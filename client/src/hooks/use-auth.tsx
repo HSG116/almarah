@@ -19,6 +19,9 @@ type AuthContextType = {
     logoutMutation: UseMutationResult<void, Error, void>;
     registerMutation: UseMutationResult<any, Error, any>;
     verifyOtpMutation: UseMutationResult<any, Error, any>;
+    loginWithGoogleMutation: UseMutationResult<any, Error, void>;
+    completeProfileMutation: UseMutationResult<any, Error, { username: string; phone: string; avatarUrl?: string }>;
+    updateProfileMutation: UseMutationResult<any, Error, Partial<SelectUser>>;
 };
 
 type LoginData = { email: string; password: string };
@@ -74,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     landmark: session.user.user_metadata?.landmark || null,
                     gpsLat: session.user.user_metadata?.gpsLat || null,
                     gpsLng: session.user.user_metadata?.gpsLng || null,
+                    avatarUrl: session.user.user_metadata?.avatar_url || session.user.user_metadata?.full_name?.split(' ').join('_') || null,
                     password: "", // Not needed on client
                 } as SelectUser;
             }
@@ -85,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     isBanned: data.is_banned === true,
                     role: data.role || "customer",
                     permissions: data.permissions || [],
+                    avatarUrl: data.avatar_url,
                 } as unknown as SelectUser;
             }
 
@@ -169,9 +174,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.error('🔴 Registration error:', error);
             console.error('Error message:', error.message);
 
-            // Don't show error toast if user already exists
-            if (error.message.includes("already") || error.message.includes("registered") || error.message.includes("exists") || error.message.includes("User")) {
-                console.log('ℹ️ User already registered (suppressing global error toast)');
+            // Handle 'already registered' case specifically
+            if (error.message.toLowerCase().includes("already") || error.message.toLowerCase().includes("registered") || error.message.toLowerCase().includes("exists")) {
+                toast({
+                    title: "تنبيه: لديك حساب بالفعل",
+                    description: "البريد الإلكتروني أو رقم الهاتف مسجل مسبقاً، يرجى تسجيل الدخول.",
+                    variant: "default",
+                });
                 return;
             }
 
@@ -209,6 +218,85 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
     });
 
+    const loginWithGoogleMutation = useMutation({
+        mutationFn: async () => {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin,
+                }
+            });
+            if (error) throw error;
+            return data;
+        },
+        onError: (error: Error) => {
+            toast({
+                title: "فشل تسجيل الدخول بجوجل",
+                description: error.message,
+                variant: "destructive",
+            });
+        },
+    });
+
+    const completeProfileMutation = useMutation({
+        mutationFn: async (data: { username: string; phone: string; avatarUrl?: string }) => {
+            if (!session?.user) throw new Error("No session found");
+
+            const { error } = await supabase
+                .from('users')
+                .upsert({
+                    id: session.user.id,
+                    username: data.username,
+                    email: session.user.email!,
+                    phone: data.phone,
+                    avatar_url: data.avatarUrl,
+                });
+
+            if (error) throw error;
+
+            // Also update auth metadata
+            await supabase.auth.updateUser({
+                data: {
+                    username: data.username,
+                    phone: data.phone,
+                }
+            });
+
+            return true;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["auth_user"] });
+            toast({
+                title: "تم إكمال الملف بنجاح",
+                description: "مرحباً بك في المراح",
+            });
+        },
+        onError: (error: Error) => {
+            toast({
+                title: "فشل تحديث البيانات",
+                description: error.message,
+                variant: "destructive",
+            });
+        },
+    });
+
+    const updateProfileMutation = useMutation({
+        mutationFn: async (data: Partial<SelectUser>) => {
+            if (!session?.user) throw new Error("No session found");
+
+            const { error } = await supabase
+                .from('users')
+                .update(data)
+                .eq('id', session.user.id);
+
+            if (error) throw error;
+            return true;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["auth_user"] });
+        },
+    });
+
     const logoutMutation = useMutation({
         mutationFn: async () => {
             const { error } = await supabase.auth.signOut();
@@ -239,6 +327,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 logoutMutation,
                 registerMutation,
                 verifyOtpMutation,
+                loginWithGoogleMutation,
+                completeProfileMutation,
+                updateProfileMutation,
             }}
         >
             {children}

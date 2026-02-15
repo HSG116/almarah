@@ -24,6 +24,7 @@ export const users = pgTable("users", {
   role: text("role").notNull().default("customer"), // 'customer', 'admin', 'butcher', 'delivery', 'manager', 'accountant', 'support', 'designer'
   permissions: text("permissions").array().default(sql`ARRAY[]::text[]`),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  avatarUrl: text("avatar_url"),
 });
 
 export const insertUserSchema = createInsertSchema(users).extend({

@@ -3387,10 +3387,14 @@ export default function AdminDashboard() {
                                   </Label>
                                   <Input
                                     value={staffForm.phone}
-                                    onChange={e => setStaffForm({ ...staffForm, phone: e.target.value })}
+                                    onChange={e => {
+                                      const value = e.target.value.replace(/\D/g, '').slice(0, 13);
+                                      setStaffForm({ ...staffForm, phone: value });
+                                    }}
                                     placeholder="05xxxxxxx"
                                     className="h-14 rounded-2xl border-white bg-white shadow-sm hover:shadow-md transition-shadow font-bold text-lg"
                                     dir="ltr"
+                                    maxLength={13}
                                     required
                                   />
                                 </div>

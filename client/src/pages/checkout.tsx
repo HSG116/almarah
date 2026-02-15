@@ -30,11 +30,14 @@ import {
     Ticket,
     Percent,
     X,
-    Clock
+    Clock,
+    Phone,
+    Loader2
 } from "lucide-react";
 import UserLocationMap from "@/components/checkout/UserLocationMap";
 import { isPointInPolygon } from "@/lib/geo";
 import { DeliveryZone } from "@shared/schema";
+import { CountrySelect } from "@/components/ui/country-select";
 
 
 const steps = [
@@ -45,20 +48,27 @@ const steps = [
 
 export default function Checkout() {
     const { items, subtotal, clearCart } = useCart();
-    const { user } = useAuth();
-    const [, setLocation] = useLocation();
+    const { user, updateProfileMutation } = useAuth();
     const { toast } = useToast();
-
+    const [, setLocation] = useLocation();
+    const [countryCode, setCountryCode] = useState("+966");
+    const [phoneInput, setPhoneInput] = useState("");
     const [currentStep, setCurrentStep] = useState(1);
     const [addressType, setAddressType] = useState<"saved" | "new">("saved");
     const [paymentMethod, setPaymentMethod] = useState<"cash" | "card">("cash");
-    const [selectedZone, setSelectedZone] = useState<DeliveryZone | null>(null);
-    const [pickedLocation, setPickedLocation] = useState<[number, number] | null>(
-        user?.gpsLat && user?.gpsLng ? [user.gpsLat, user.gpsLng] as [number, number] : null
-    );
     const [couponCode, setCouponCode] = useState("");
-    const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
+    const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
     const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+    const [pickedLocation, setPickedLocation] = useState<{ lat: number, lng: number } | null>(null);
+    const [selectedZone, setSelectedZone] = useState<DeliveryZone | null>(null);
+    const [newAddress, setNewAddress] = useState({
+        city: "",
+        district: "",
+        street: "",
+        building: "",
+        landmark: "",
+        notes: ""
+    });
 
     const { data: siteSettings = [] } = useQuery({
         queryKey: ["site_settings"],
@@ -80,119 +90,48 @@ export default function Checkout() {
 
     const isStoreClosed = settingsMap.store_status === 'closed';
 
-
-
-    const { data: zones = [] } = useQuery({
-        queryKey: ["delivery_zones"],
+    const { data: zones = [] } = useQuery<DeliveryZone[]>({
+        queryKey: ['delivery_zones_active'],
         queryFn: async () => {
-            const { data, error } = await supabase.from('delivery_zones').select('*').eq('is_active', true);
+            const { data, error } = await supabase
+                .from('delivery_zones')
+                .select('*')
+                .eq('is_active', true);
             if (error) throw error;
-            return data;
+            return data as DeliveryZone[];
         }
     });
 
-    const [newAddress, setNewAddress] = useState({
-        city: "",
-        district: "",
-        street: "",
-        building: "",
-        landmark: "",
-        notes: ""
-    });
-
-    // Auto-detect zone when location or zones change
-    useEffect(() => {
-        if (pickedLocation && zones.length > 0 && !selectedZone) {
-            const zone = zones.find((z: any) => {
-                if (!z.coordinates) return false;
-                const poly = typeof z.coordinates === 'string' ? JSON.parse(z.coordinates) : z.coordinates;
-                return isPointInPolygon(pickedLocation, poly);
-            });
-            if (zone) setSelectedZone(zone);
-        }
-    }, [pickedLocation, zones]);
-
-
-
-
-    const savedAddressStr = user?.address || (user?.city ? `${user.city}، ${user.district || ''}، ${user.street || ''}` : "");
+    const savedAddressStr = user?.address ? (
+        typeof user.address === 'string' ? user.address :
+            `${(user.address as any).city || ''} - ${(user.address as any).district || ''} - ${(user.address as any).street || ''}`
+    ) : "";
 
     const orderMutation = useMutation({
-        mutationFn: async () => {
-            if (!user) throw new Error("يجب تسجيل الدخول");
-            if (!selectedZone) throw new Error("يرجى اختيار منطقة التوصيل");
-
-            let finalAddress = "";
-            let notes = "";
-
-            if (addressType === "saved" && savedAddressStr) {
-                finalAddress = savedAddressStr;
-            } else {
-                if (!newAddress.city || !newAddress.street) throw new Error("يرجى ملء بيانات العنوان الأساسية");
-                finalAddress = `${newAddress.city}، ${newAddress.district}، ${newAddress.street}، ${newAddress.building} - ${newAddress.landmark}`;
-                notes = newAddress.notes;
-            }
-
-            const { data: orderData, error: orderError } = await supabase
+        mutationFn: async (orderData: any) => {
+            const { data, error } = await supabase
                 .from('orders')
-                .insert([{
-                    user_id: user.id,
-                    total: (subtotal + (selectedZone?.fee || 0)) - (appliedCoupon ? (appliedCoupon.discount_type === 'percentage' ? (subtotal * appliedCoupon.discount_value / 100) : appliedCoupon.discount_value) : 0),
-                    subtotal: subtotal,
-                    delivery_fee: selectedZone?.fee || 0,
-                    discount_amount: appliedCoupon ? (appliedCoupon.discount_type === 'percentage' ? (subtotal * appliedCoupon.discount_value / 100) : appliedCoupon.discount_value) : 0,
-                    status: 'pending',
-                    address: finalAddress,
-                    notes: notes,
-                    payment_method: paymentMethod,
-                    customer_name: user.username,
-                    customer_phone: user.phone,
-                    gps_lat: pickedLocation?.[0],
-                    gps_lng: pickedLocation?.[1]
-                }])
-
+                .insert([orderData])
                 .select()
                 .single();
-
-            if (orderError) throw orderError;
-
-            const itemsToInsert = items.map(item => ({
-                order_id: orderData.id,
-                product_id: item.id,
-                product_name: item.name,
-                quantity: item.quantity,
-                price: item.price,
-                cutting: item.cutting,
-                packaging: item.packaging,
-                extras: item.extras,
-                notes: item.notes
-            }));
-
-            const { error: itemsError } = await supabase
-                .from('order_items')
-                .insert(itemsToInsert);
-
-            if (itemsError) throw itemsError;
-
-            return orderData;
+            if (error) throw error;
+            return data;
         },
         onSuccess: () => {
-            toast({
-                title: "تم الطلب بنجاح! 🎉",
-                description: "شكراً لثقتك بنا، سيتم تجهيز طلبك في أسرع وقت.",
-                className: "bg-green-600 text-white border-none",
-                duration: 5000
-            });
             clearCart();
-            setLocation("/profile");
+            setLocation("/profile"); // Assuming we want to go to profile to see orders
+            toast({
+                title: "تم إرسال الطلب بنجاح! 🎉",
+                description: "سنتواصل معك قريباً لتأكيد الطلب والتوصيل.",
+            });
         },
         onError: (error: Error) => {
             toast({
-                title: "خطأ",
+                title: "فشل إرسال الطلب",
                 description: error.message,
                 variant: "destructive",
             });
-        },
+        }
     });
 
     const handleNext = () => {
@@ -204,21 +143,29 @@ export default function Checkout() {
             setCurrentStep(2);
         } else if (currentStep === 2) {
             if (!selectedZone) {
-                toast({ title: "يرجى اختيار منطقة التوصيل أولاً", variant: "destructive" });
-                return;
-            }
-            if (addressType === "new" && (!newAddress.city || !newAddress.street)) {
-                toast({ title: "يرجى إكمال بيانات العنوان", variant: "destructive" });
-                return;
-            }
-            if (addressType === "saved" && !savedAddressStr) {
-                toast({ title: "لا يوجد عنوان محفوظ، يرجى إضافة عنوان جديد", variant: "destructive" });
-                setAddressType("new");
+                toast({ title: "يرجى اختيار موقع التوصيل على الخريطة أولاً", variant: "destructive" });
                 return;
             }
             setCurrentStep(3);
-        } else {
-            orderMutation.mutate();
+        } else if (currentStep === 3) {
+            const finalAddress = addressType === "saved" ? user?.address : newAddress;
+            const discount = appliedCoupon ? (appliedCoupon.discount_type === 'percentage' ? (subtotal * appliedCoupon.discount_value / 100) : appliedCoupon.discount_value) : 0;
+
+            orderMutation.mutate({
+                user_id: user?.id,
+                items: items,
+                total_amount: (subtotal + (selectedZone?.fee || 0)) - discount,
+                subtotal: subtotal,
+                status: 'pending',
+                delivery_fee: selectedZone?.fee || 0,
+                discount_amount: discount,
+                coupon_code: appliedCoupon?.code || null,
+                address: finalAddress,
+                location_lat: pickedLocation?.lat,
+                location_lng: pickedLocation?.lng,
+                payment_method: paymentMethod,
+                delivery_zone_id: selectedZone?.id
+            });
         }
     };
 
@@ -227,9 +174,73 @@ export default function Checkout() {
         else setLocation("/cart");
     };
 
+    const handleUpdatePhone = () => {
+        if (!phoneInput || phoneInput.length < 9) {
+            toast({ title: "رقم الجوال قصير جداً", variant: "destructive" });
+            return;
+        }
+        const fullPhone = countryCode.replace('+', '') + (phoneInput.startsWith('0') ? phoneInput.substring(1) : phoneInput);
+        updateProfileMutation.mutate({ phone: fullPhone }, {
+            onSuccess: () => {
+                toast({ title: "تم حفظ الرقم بنجاح", className: "bg-green-600 text-white" });
+            }
+        });
+    };
+
     if (!user) {
         setLocation("/auth");
         return null;
+    }
+
+    if (!user.phone) {
+        return (
+            <div className="min-h-screen bg-muted/20 pb-24">
+                <Navbar />
+                <div className="container mx-auto px-4 py-12 max-w-lg mt-10">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-primary/5 text-center relative overflow-hidden"
+                        dir="rtl"
+                    >
+                        <div className="absolute top-0 left-0 right-0 h-2 bg-primary" />
+                        <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-8">
+                            <Phone className="w-12 h-12 text-primary" />
+                        </div>
+                        <h2 className="text-3xl font-black text-slate-800 mb-4">نحتاج لرقم جوالك</h2>
+                        <p className="text-slate-500 font-bold mb-10 leading-relaxed text-lg text-pretty">
+                            لإتمام طلبك ومتابعة التوصيل، يجب إضافة رقم جوال نشط لحسابك أولاً.
+                        </p>
+
+                        <div className="space-y-6">
+                            <div className="flex gap-3" dir="ltr">
+                                <CountrySelect value={countryCode} onChange={setCountryCode} />
+                                <Input
+                                    value={phoneInput}
+                                    onChange={(e) => {
+                                        const value = e.target.value.replace(/\D/g, '').slice(0, 13);
+                                        setPhoneInput(value);
+                                    }}
+                                    type="tel"
+                                    maxLength={13}
+                                    placeholder="5xxxxxxxx"
+                                    className="h-16 bg-gray-50 border-gray-100 rounded-2xl focus:border-red-500/30 focus:ring-4 focus:ring-red-500/5 flex-1 font-black text-2xl px-6"
+                                />
+                            </div>
+
+                            <Button
+                                onClick={handleUpdatePhone}
+                                disabled={updateProfileMutation.isPending}
+                                className="w-full h-18 py-8 rounded-[1.5rem] bg-primary hover:bg-primary/90 text-white font-black text-2xl shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3"
+                            >
+                                {updateProfileMutation.isPending ? <Loader2 className="animate-spin" /> : "إضافة الرقم والمتابعة"}
+                                <ChevronLeft className="w-6 h-6 mr-auto" />
+                            </Button>
+                        </div>
+                    </motion.div>
+                </div>
+            </div>
+        );
     }
 
     return (

@@ -10,18 +10,18 @@ import { useAuth } from "@/hooks/use-auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertUserSchema, InsertUser } from "@shared/schema";
-import { Loader2, ShieldCheck, Mail, Send, CheckCircle2, ArrowRight, MessageSquare } from "lucide-react";
+import { Loader2, ShieldCheck, Mail, Send, CheckCircle2, ArrowRight, MessageSquare, Star, UserCircle, Phone } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { CountrySelect } from "@/components/ui/country-select";
 
-type AuthStep = "form" | "selection" | "otp";
+type AuthStep = "form" | "selection" | "otp" | "onboarding";
 
 export default function Auth() {
   const [, setLocation] = useLocation();
-  const { user, loginMutation, registerMutation, verifyOtpMutation } = useAuth();
+  const { user, loginMutation, registerMutation, verifyOtpMutation, loginWithGoogleMutation, completeProfileMutation } = useAuth();
   const [step, setStep] = useState<AuthStep>("form");
   const [otpMethod, setOtpMethod] = useState<"gmail" | "telegram" | null>(null);
   const [otpValue, setOtpValue] = useState("");
@@ -30,22 +30,22 @@ export default function Auth() {
   // Redirect Logic: Immediately send staff to their dashboards upon login
   useEffect(() => {
     if (user) {
+      // 1. If user has no phone, they MUST complete onboarding (common for Google signups)
+      if (!user.phone) {
+        setStep("onboarding");
+        return; // 🛑 CRITICAL: Stop here so we don't redirect away
+      }
+
+      // 2. If phone exists, user is fully registered. Redirect to appropriate dashboard.
       const confinedRoles = ['delivery', 'butcher', 'accountant', 'support', 'designer', 'manager'];
 
-      // 1. Check for specific confined staff roles FIRST
       if (user.role && confinedRoles.includes(user.role)) {
         setLocation(`/${user.role}`);
-      }
-      // 2. Top Admin (Freedom): Default to store home on login per request "ما تنقله"
-      else if (user.role === 'admin' || user.isAdmin) {
-        setLocation("/");
-      }
-      // 3. Default to Customer Home
-      else {
-        setLocation("/");
+      } else {
+        setLocation("/"); // Customers and Admins default home
       }
     }
-  }, [user, setLocation]);
+  }, [user, setLocation, step]);
 
   const loginForm = useForm<{ email: string; password: string }>({
     defaultValues: {
@@ -423,7 +423,17 @@ export default function Auth() {
                           <Input {...registerForm.register("email")} type="email" dir="ltr" placeholder="البريد الإلكتروني" className="h-14 bg-white border-gray-200 rounded-xl focus:border-red-500/30 focus:ring-red-500/10 transition-all font-medium text-lg" />
                           <div className="flex gap-2" dir="ltr">
                             <CountrySelect value={countryCode} onChange={setCountryCode} />
-                            <Input {...registerForm.register("phone")} type="tel" placeholder="5xxxxxxxx" className="h-14 bg-white border-gray-200 rounded-xl focus:border-red-500/30 focus:ring-red-500/10 flex-1 font-bold text-lg transition-all" />
+                            <Input
+                              {...registerForm.register("phone")}
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/\D/g, '').slice(0, 13);
+                                registerForm.setValue("phone", value);
+                              }}
+                              type="tel"
+                              maxLength={13}
+                              placeholder="5xxxxxxxx"
+                              className="h-14 bg-white border-gray-200 rounded-xl focus:border-red-500/30 focus:ring-red-500/10 flex-1 font-bold text-lg transition-all"
+                            />
                           </div>
                           <div className="grid grid-cols-2 gap-3">
                             <Input type="password" {...registerForm.register("password")} placeholder="كلمة المرور" className="h-14 bg-white border-gray-200 rounded-xl focus:border-red-500/30 focus:ring-red-500/10 transition-all font-medium text-lg" />
@@ -444,6 +454,53 @@ export default function Auth() {
                         </form>
                       </TabsContent>
                     </Tabs>
+
+                    {/* --- Unified Google Auth --- */}
+                    <div className="mt-8 space-y-6">
+                      <div className="relative flex items-center py-2">
+                        <div className="flex-grow border-t border-gray-100"></div>
+                        <span className="flex-shrink mx-4 text-gray-300 font-bold text-xs uppercase tracking-widest">أو عبر</span>
+                        <div className="flex-grow border-t border-gray-100"></div>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={loginWithGoogleMutation.isPending}
+                        onClick={() => loginWithGoogleMutation.mutate()}
+                        className="w-full h-16 rounded-2xl bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-zinc-700 font-bold text-lg shadow-sm transition-all flex items-center justify-center gap-4 group"
+                      >
+                        {loginWithGoogleMutation.isPending ? (
+                          <Loader2 className="animate-spin w-6 h-6" />
+                        ) : (
+                          <>
+                            <svg className="w-6 h-6 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                              <path
+                                fill="currentColor"
+                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                style={{ fill: "#4285F4" }}
+                              />
+                              <path
+                                fill="currentColor"
+                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                style={{ fill: "#34A853" }}
+                              />
+                              <path
+                                fill="currentColor"
+                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+                                style={{ fill: "#FBBC05" }}
+                              />
+                              <path
+                                fill="currentColor"
+                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                style={{ fill: "#EA4335" }}
+                              />
+                            </svg>
+                            <span>متابعة باستخدام جوجل</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </motion.div>
                 )}
 
@@ -538,6 +595,121 @@ export default function Auth() {
                         </Button>
                       </div>
                     )}
+                  </motion.div>
+                )}
+
+                {step === "onboarding" && (
+                  <motion.div
+                    key="onboarding"
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    className="py-6 space-y-10"
+                    dir="rtl"
+                  >
+                    {/* Welcome Header with Profile Backdrop */}
+                    <div className="flex flex-col items-center relative">
+                      <div className="absolute top-0 w-full h-32 bg-gradient-to-b from-primary/5 to-transparent rounded-t-[3rem] -z-10" />
+
+                      <div className="relative group mt-2">
+                        <div className="w-32 h-32 rounded-3xl bg-white p-2 shadow-2xl border border-primary/10 overflow-hidden transform group-hover:rotate-3 transition-transform duration-500">
+                          <img
+                            src={user?.avatarUrl || "/uploads/LOGO.png"}
+                            alt="Profile"
+                            className="w-full h-full object-cover rounded-2xl"
+                          />
+                        </div>
+                        <div className="absolute -bottom-3 -right-3 bg-[#B91C1C] text-white p-2.5 rounded-2xl shadow-lg border-4 border-white animate-bounce-slow">
+                          <Star className="w-5 h-5 fill-current" />
+                        </div>
+                      </div>
+
+                      <div className="text-center mt-8">
+                        <h3 className="text-3xl font-black text-zinc-900 tracking-tight">أهلاً بك في عائلة المراح!</h3>
+                        <p className="text-gray-500 font-bold mt-2 text-base">بقي خطوة واحدة لنبدأ رحلتنا معاً</p>
+                      </div>
+                    </div>
+
+                    {/* Unified Form Container */}
+                    <div className="space-y-6">
+                      <div className="space-y-3">
+                        <Label className="text-zinc-600 font-black text-sm mr-2 flex items-center gap-2">
+                          <UserCircle className="w-4 h-4 text-primary" />
+                          الاسم الذي تفضله
+                        </Label>
+                        <Input
+                          value={registerForm.getValues("username") || user?.username || ""}
+                          onChange={(e) => {
+                            registerForm.setValue("username", e.target.value);
+                            setOtpValue(""); // Dummy trigger for re-render if needed
+                          }}
+                          className="h-16 bg-gray-50/50 border-gray-100 rounded-2xl focus:border-red-500/30 focus:ring-4 focus:ring-red-500/5 transition-all font-black text-xl px-6 shadow-inner"
+                          placeholder="مثال: صالح العتيبي"
+                        />
+                      </div>
+
+                      <div className="space-y-3">
+                        <Label className="text-zinc-600 font-black text-sm mr-2 flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-primary" />
+                          رقم جوالك للتواصل
+                        </Label>
+                        <div className="flex gap-3" dir="ltr">
+                          <CountrySelect value={countryCode} onChange={setCountryCode} />
+                          <Input
+                            value={registerForm.getValues("phone") || ""}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, '').slice(0, 13);
+                              registerForm.setValue("phone", value);
+                            }}
+                            type="tel"
+                            maxLength={13}
+                            placeholder="5xxxxxxxx"
+                            className="h-16 bg-gray-50/50 border-gray-100 rounded-2xl focus:border-red-500/30 focus:ring-4 focus:ring-red-500/5 flex-1 font-black text-xl transition-all px-6 shadow-inner"
+                          />
+                        </div>
+                        <div className="bg-amber-50/50 p-3 rounded-2xl border border-amber-100/50 flex items-start gap-2 mt-2">
+                          <ShieldCheck className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                          <p className="text-[11px] text-amber-800 font-bold leading-relaxed">رقم الجوال ضروري جداً لمتابعة طلبك وتأكيد العنوان وقت التوصيل.</p>
+                        </div>
+                      </div>
+
+                      <div className="pt-4">
+                        <Button
+                          onClick={() => {
+                            const username = registerForm.getValues("username") || user?.username || "عضو المراح";
+                            const rawPhone = registerForm.getValues("phone");
+
+                            if (!rawPhone || rawPhone.length < 9) {
+                              toast({ title: "عذراً.. نحتاج لرقم جوالك لخدمتك", variant: "destructive", description: "يرجى إدخال 9 أرقام على الأقل" });
+                              return;
+                            }
+
+                            const fullPhone = countryCode.replace('+', '') + (rawPhone.startsWith('0') ? rawPhone.substring(1) : rawPhone);
+
+                            completeProfileMutation.mutate({
+                              username,
+                              phone: fullPhone,
+                              avatarUrl: user?.avatarUrl || null
+                            }, {
+                              onSuccess: () => {
+                                toast({ title: "تم تفعيل الحساب بنجاح", description: `مرحباً بك ${username}` });
+                                setLocation("/");
+                              }
+                            });
+                          }}
+                          disabled={completeProfileMutation.isPending}
+                          className="w-full h-18 py-8 rounded-[2rem] bg-[#B91C1C] hover:bg-[#991B1B] text-white font-black text-2xl shadow-[0_15px_40px_-10px_rgba(185,28,28,0.4)] hover:shadow-[0_25px_50px_-10px_rgba(185,28,28,0.5)] active:scale-[0.97] transition-all duration-500 flex items-center justify-center gap-3 mt-4"
+                        >
+                          {completeProfileMutation.isPending ? (
+                            <Loader2 className="animate-spin w-8 h-8" />
+                          ) : (
+                            <>
+                              ابـدأ الآن
+                              <ArrowRight className="w-6 h-6 rotate-180" />
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

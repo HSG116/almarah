@@ -594,94 +594,96 @@ export default function Profile() {
               {/* Main Settings Body */}
               <div className="lg:col-span-2 space-y-6">
                 <Card className="border-none shadow-sm rounded-[32px] bg-white overflow-hidden">
-                  <div className="p-8 space-y-8">
-                    {/* Public Profile Section */}
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Settings2 className="h-5 w-5 text-primary" />
-                        <h4 className="font-bold text-lg">معلومات الحساب</h4>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2 p-4 rounded-2xl bg-muted/20 border border-muted/30 group hover:bg-white hover:border-primary/20 transition-all duration-300">
-                          <div className="flex items-center gap-3 text-muted-foreground mb-1">
-                            <User className="h-4 w-4" />
-                            <Label className="text-[10px] font-bold uppercase tracking-wider">اسم المستخدم</Label>
-                          </div>
-                          <p className="font-bold text-foreground px-1">{user.username}</p>
+                  <CardContent className="p-0">
+                    <div className="p-8 space-y-8">
+                      {/* Public Profile Section */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Settings2 className="h-5 w-5 text-primary" />
+                          <h4 className="font-bold text-lg">معلومات الحساب</h4>
                         </div>
 
-                        <div className="space-y-2 p-4 rounded-2xl bg-muted/20 border border-muted/30 group hover:bg-white hover:border-primary/20 transition-all duration-300">
-                          <div className="flex items-center gap-3 text-muted-foreground mb-1">
-                            <Mail className="h-4 w-4" />
-                            <Label className="text-[10px] font-bold uppercase tracking-wider">البريد الإلكتروني</Label>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <p className="font-bold text-foreground px-1">{user.email}</p>
-                            <span className="text-[9px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-lg">موثق</span>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2 p-4 rounded-2xl bg-muted/20 border border-muted/30 group hover:bg-white hover:border-primary/20 transition-all duration-300 md:col-span-2">
-                          <div className="flex items-center gap-3 text-muted-foreground mb-1">
-                            <Phone className="h-4 w-4" />
-                            <Label className="text-[10px] font-bold uppercase tracking-wider">رقم الجوال النشط</Label>
-                          </div>
-                          <p className="font-bold text-foreground px-1">{user.phone}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Security Section */}
-                    <div className="space-y-4 pt-4 border-t border-muted/30">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Lock className="h-5 w-5 text-primary" />
-                        <h4 className="font-bold text-lg">الأمان والخصوصية</h4>
-                      </div>
-
-                      <div className="flex flex-col gap-3">
-                        <Button variant="outline" className="justify-between h-14 rounded-2xl font-bold px-6 border-muted-foreground/10 hover:border-primary/30 group">
-                          <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                              <Shield className="h-4 w-4" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2 p-4 rounded-2xl bg-muted/20 border border-muted/30 group hover:bg-white hover:border-primary/20 transition-all duration-300">
+                            <div className="flex items-center gap-3 text-muted-foreground mb-1">
+                              <User className="h-4 w-4" />
+                              <Label className="text-[10px] font-bold uppercase tracking-wider">اسم المستخدم</Label>
                             </div>
-                            <span>تغيير كلمة المرور</span>
+                            <p className="font-bold text-foreground px-1">{user.username}</p>
                           </div>
-                          <ChevronDown className="h-4 w-4 rotate-270 opacity-50 group-hover:opacity-100" />
-                        </Button>
 
-                        <Button variant="outline" className="justify-between h-14 rounded-2xl font-bold px-6 border-muted-foreground/10 hover:border-primary/30 group">
-                          <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-lg bg-orange-100 text-orange-600">
-                              <Lock className="h-4 w-4" />
+                          <div className="space-y-2 p-4 rounded-2xl bg-muted/20 border border-muted/30 group hover:bg-white hover:border-primary/20 transition-all duration-300">
+                            <div className="flex items-center gap-3 text-muted-foreground mb-1">
+                              <Mail className="h-4 w-4" />
+                              <Label className="text-[10px] font-bold uppercase tracking-wider">البريد الإلكتروني</Label>
                             </div>
-                            <span>المصادقة الثنائية</span>
+                            <div className="flex items-center justify-between">
+                              <p className="font-bold text-foreground px-1">{user.email}</p>
+                              <span className="text-[9px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-lg">موثق</span>
+                            </div>
                           </div>
-                          <span className="text-[10px] font-bold text-muted-foreground bg-muted h-6 flex items-center px-3 rounded-full">قريباً</span>
+
+                          <div className="space-y-2 p-4 rounded-2xl bg-muted/20 border border-muted/30 group hover:bg-white hover:border-primary/20 transition-all duration-300 md:col-span-2">
+                            <div className="flex items-center gap-3 text-muted-foreground mb-1">
+                              <Phone className="h-4 w-4" />
+                              <Label className="text-[10px] font-bold uppercase tracking-wider">رقم الجوال النشط</Label>
+                            </div>
+                            <p className="font-bold text-foreground px-1">{user.phone}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Security Section */}
+                      <div className="space-y-4 pt-4 border-t border-muted/30">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Lock className="h-5 w-5 text-primary" />
+                          <h4 className="font-bold text-lg">الأمان والخصوصية</h4>
+                        </div>
+
+                        <div className="flex flex-col gap-3">
+                          <Button variant="outline" className="justify-between h-14 rounded-2xl font-bold px-6 border-muted-foreground/10 hover:border-primary/30 group">
+                            <div className="flex items-center gap-3">
+                              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                                <Shield className="h-4 w-4" />
+                              </div>
+                              <span>تغيير كلمة المرور</span>
+                            </div>
+                            <ChevronDown className="h-4 w-4 rotate-270 opacity-50 group-hover:opacity-100" />
+                          </Button>
+
+                          <Button variant="outline" className="justify-between h-14 rounded-2xl font-bold px-6 border-muted-foreground/10 hover:border-primary/30 group">
+                            <div className="flex items-center gap-3">
+                              <div className="h-8 w-8 rounded-lg bg-orange-100 text-orange-600">
+                                <Lock className="h-4 w-4" />
+                              </div>
+                              <span>المصادقة الثنائية</span>
+                            </div>
+                            <span className="text-[10px] font-bold text-muted-foreground bg-muted h-6 flex items-center px-3 rounded-full">قريباً</span>
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Action Bar */}
+                      <div className="pt-8 border-t border-muted/30 mt-4 flex flex-col md:flex-row gap-4">
+                        <Button
+                          variant="ghost"
+                          className="flex-1 h-14 rounded-2xl font-bold group hover:bg-red-50 hover:text-destructive overflow-hidden relative"
+                          onClick={() => logoutMutation.mutate()}
+                          disabled={logoutMutation.isPending}
+                        >
+                          {logoutMutation.isPending ? (
+                            <Loader2 className="ml-2 h-5 w-5 animate-spin" />
+                          ) : (
+                            <LogOut className="ml-2 h-5 w-5 text-destructive group-hover:scale-110 transition-transform" />
+                          )}
+                          تسجيل الخروج من الحساب
+                          <div className="absolute inset-0 bg-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </Button>
                       </div>
                     </div>
-
-                    {/* Action Bar */}
-                    <div className="pt-8 border-t border-muted/30 mt-4 flex flex-col md:flex-row gap-4">
-                      <Button
-                        variant="ghost"
-                        className="flex-1 h-14 rounded-2xl font-bold group hover:bg-red-50 hover:text-destructive overflow-hidden relative"
-                        onClick={() => logoutMutation.mutate()}
-                        disabled={logoutMutation.isPending}
-                      >
-                        {logoutMutation.isPending ? (
-                          <Loader2 className="ml-2 h-5 w-5 animate-spin" />
-                        ) : (
-                          <LogOut className="ml-2 h-5 w-5 text-destructive group-hover:scale-110 transition-transform" />
-                        )}
-                        تسجيل الخروج من الحساب
-                        <div className="absolute inset-0 bg-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
