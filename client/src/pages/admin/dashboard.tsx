@@ -78,6 +78,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -829,6 +830,70 @@ export default function AdminDashboard() {
     logoutMutation.mutate();
     setLocation("/auth");
   };
+
+  // --- Bulk Edit State ---
+  const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
+  const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
+  const [bulkEditFields, setBulkEditFields] = useState({
+    badge: false,
+    unit: false,
+    imageObjectPosition: false,
+    isActive: false,
+    isFeatured: false,
+    isOutOfStock: false,
+    hasCutting: false,
+    hasPackaging: false,
+    hasExtras: false
+  });
+  const [bulkEditValues, setBulkEditValues] = useState({
+    badge: "",
+    unit: "ذبيحة",
+    customUnit: "",
+    imageObjectPosition: "object-center",
+    isActive: true,
+    isFeatured: false,
+    isOutOfStock: false,
+    hasCutting: false,
+    hasPackaging: false,
+    hasExtras: false
+  });
+
+  const bulkUpdateMutation = useMutation({
+    mutationFn: async () => {
+      const updates: any = {};
+      if (bulkEditFields.badge) updates.badge = bulkEditValues.badge;
+      if (bulkEditFields.unit) updates.unit = bulkEditValues.unit === "other" ? bulkEditValues.customUnit : bulkEditValues.unit;
+      if (bulkEditFields.imageObjectPosition) updates.image_object_position = bulkEditValues.imageObjectPosition;
+      if (bulkEditFields.isActive) updates.is_active = bulkEditValues.isActive;
+      if (bulkEditFields.isFeatured) updates.is_featured = bulkEditValues.isFeatured;
+      if (bulkEditFields.isOutOfStock) updates.is_out_of_stock = bulkEditValues.isOutOfStock;
+      if (bulkEditFields.hasCutting) updates.has_cutting = bulkEditValues.hasCutting;
+      if (bulkEditFields.hasPackaging) updates.has_packaging = bulkEditValues.hasPackaging;
+      if (bulkEditFields.hasExtras) updates.has_extras = bulkEditValues.hasExtras;
+
+      if (Object.keys(updates).length === 0) {
+        toast({ title: "لم يتم اختيار حقول للتعديل", variant: "destructive" });
+        return;
+      }
+
+      console.log("🔄 Bulk updating products:", selectedProductIds, updates);
+      const { error } = await supabase
+        .from('products')
+        .update(updates)
+        .in('id', selectedProductIds);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      setIsBulkEditOpen(false);
+      setSelectedProductIds([]);
+      toast({ title: "تم تحديث المنتجات بنجاح" });
+    },
+    onError: (e: any) => {
+      toast({ title: "حدث خطأ", description: e.message, variant: "destructive" });
+    }
+  });
 
   // --- State for Forms ---
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
@@ -1736,9 +1801,27 @@ export default function AdminDashboard() {
           {activeTab === "products" && (
             <div className="space-y-6 animate-in fade-in-50 duration-500">
               <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 font-heading">المنتجات</h1>
-                  <p className="text-muted-foreground mt-1">إضافة وتعديل وحذف منتجات المتجر</p>
+                <div className="flex items-center gap-4">
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900 font-heading">المنتجات</h1>
+                    <p className="text-muted-foreground mt-1">إضافة وتعديل وحذف منتجات المتجر</p>
+                  </div>
+                  {products.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl h-10 border-slate-200 text-slate-500 font-bold hover:bg-slate-50 px-4"
+                      onClick={() => {
+                        if (selectedProductIds.length === products.length) {
+                          setSelectedProductIds([]);
+                        } else {
+                          setSelectedProductIds(products.map(p => p.id));
+                        }
+                      }}
+                    >
+                      {selectedProductIds.length === products.length ? 'إلغاء تحديد الكل' : 'تحديد الكل'}
+                    </Button>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
@@ -2090,8 +2173,21 @@ export default function AdminDashboard() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
                 {products.map((product) => (
-                  <Card key={product.id} className={`group relative overflow-hidden border-none shadow-2xl shadow-slate-200/50 rounded-[3rem] bg-white hover:-translate-y-3 transition-all duration-700 ${!product.isActive ? 'opacity-70 grayscale' : ''}`}>
+                  <Card key={product.id} className={`group relative overflow-hidden border-none shadow-2xl shadow-slate-200/50 rounded-[3rem] bg-white hover:-translate-y-3 transition-all duration-700 ${!product.isActive ? 'opacity-70 grayscale' : ''} ${selectedProductIds.includes(product.id) ? 'ring-4 ring-primary ring-offset-4' : ''}`}>
                     <div className="relative h-72 overflow-hidden">
+                      <div className="absolute top-6 left-6 z-20">
+                        <Checkbox
+                          checked={selectedProductIds.includes(product.id)}
+                          onCheckedChange={(checked) => {
+                            setSelectedProductIds(prev =>
+                              checked
+                                ? [...prev, product.id]
+                                : prev.filter(id => id !== product.id)
+                            );
+                          }}
+                          className="w-10 h-10 rounded-2xl border-white/50 bg-black/20 backdrop-blur-md data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all shadow-xl shadow-black/20 border-2"
+                        />
+                      </div>
                       <img
                         src={product.image || '/assets/product-placeholder.jpg'}
                         className={`w-full h-full object-cover transform scale-105 group-hover:scale-110 transition-transform duration-1000 ${product.imageObjectPosition || 'object-center'}`}
@@ -2163,6 +2259,207 @@ export default function AdminDashboard() {
                   </Card>
                 ))}
               </div>
+
+              {/* Floating Action Bar for Bulk Selection */}
+              {selectedProductIds.length > 0 && (
+                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] bg-slate-900/90 backdrop-blur-xl text-white px-10 py-5 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center gap-8 animate-in slide-in-from-bottom-10 duration-500 border border-white/10">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-primary text-white w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg shadow-primary/20">{selectedProductIds.length}</div>
+                    <div className="flex flex-col">
+                      <span className="font-black text-lg">منتجات محددة</span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">تحكم كامل بالمجموعة</span>
+                    </div>
+                  </div>
+                  <div className="h-10 w-px bg-white/10" />
+                  <div className="flex gap-4">
+                    <Button className="h-14 px-8 rounded-2xl bg-white text-slate-900 hover:bg-slate-100 font-black text-lg gap-3 shadow-xl" onClick={() => setIsBulkEditOpen(true)}>
+                      <Edit className="w-6 h-6" /> تعديل جماعي
+                    </Button>
+                    <Button variant="ghost" className="h-14 px-6 rounded-2xl text-rose-400 hover:text-rose-300 hover:bg-white/5 font-bold gap-3" onClick={() => setSelectedProductIds([])}>
+                      <X className="w-5 h-5" /> إلغاء
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Bulk Edit Dialog */}
+              <Dialog open={isBulkEditOpen} onOpenChange={setIsBulkEditOpen}>
+                <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-[2.5rem] border-none shadow-2xl" dir="rtl">
+                  <div className="bg-gradient-to-r from-indigo-900 to-slate-900 p-8 text-white shrink-0">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-md">
+                        <PenTool className="w-8 h-8 text-primary" />
+                      </div>
+                      <div>
+                        <DialogTitle className="text-3xl font-black">تعديل جماعي لـ {selectedProductIds.length} منتج</DialogTitle>
+                        <DialogDescription className="text-slate-400 font-medium">اختر الحقول التي ترغب بتغييرها لجميع المنتجات المحددة</DialogDescription>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 min-h-0 overflow-hidden bg-slate-50/50">
+                    <ScrollArea className="h-full">
+                      <div className="p-8 space-y-10">
+                        {/* Section 1: Appearance */}
+                        <section className="space-y-6">
+                          <div className="flex items-center gap-3 border-b border-slate-200 pb-2">
+                            <Checkbox checked={bulkEditFields.badge || bulkEditFields.unit || bulkEditFields.imageObjectPosition} onCheckedChange={(c) => {
+                              const val = !!c;
+                              setBulkEditFields(prev => ({ ...prev, badge: val, unit: val, imageObjectPosition: val }));
+                            }} />
+                            <h4 className="text-lg font-black text-slate-800">إعدادات العرض الأساسية</h4>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pr-8">
+                            <div className="space-y-4">
+                              <div className="flex items-center gap-3">
+                                <Checkbox checked={bulkEditFields.badge} onCheckedChange={(c) => setBulkEditFields(prev => ({ ...prev, badge: !!c }))} />
+                                <Label className="font-bold">الوسام الترويجي</Label>
+                              </div>
+                              <Input
+                                disabled={!bulkEditFields.badge}
+                                value={bulkEditValues.badge}
+                                onChange={e => setBulkEditValues(prev => ({ ...prev, badge: e.target.value }))}
+                                placeholder="مثال: الأكثر مبيعاً 🔥"
+                                className="h-12 rounded-xl"
+                              />
+                            </div>
+
+                            <div className="space-y-4">
+                              <div className="flex items-center gap-3">
+                                <Checkbox checked={bulkEditFields.unit} onCheckedChange={(c) => setBulkEditFields(prev => ({ ...prev, unit: !!c }))} />
+                                <Label className="font-bold">وحدة البيع</Label>
+                              </div>
+                              <Select disabled={!bulkEditFields.unit} value={bulkEditValues.unit} onValueChange={v => setBulkEditValues(prev => ({ ...prev, unit: v }))}>
+                                <SelectTrigger className="h-12 rounded-xl">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="ذبيحة">ذبيحة</SelectItem>
+                                  <SelectItem value="نصف">نصف ذبيحة</SelectItem>
+                                  <SelectItem value="كيلو">كيلو</SelectItem>
+                                  <SelectItem value="طبق">طبق</SelectItem>
+                                  <SelectItem value="other">وحدة أخرى...</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {bulkEditFields.unit && bulkEditValues.unit === "other" && (
+                                <Input
+                                  placeholder="اسم الوحدة..."
+                                  value={bulkEditValues.customUnit}
+                                  onChange={e => setBulkEditValues(prev => ({ ...prev, customUnit: e.target.value }))}
+                                  className="mt-2 h-12 rounded-xl"
+                                />
+                              )}
+                            </div>
+
+                            <div className="space-y-4">
+                              <div className="flex items-center gap-3">
+                                <Checkbox checked={bulkEditFields.imageObjectPosition} onCheckedChange={(c) => setBulkEditFields(prev => ({ ...prev, imageObjectPosition: !!c }))} />
+                                <Label className="font-bold">تمركز الصورة والتركيز</Label>
+                              </div>
+                              <Select disabled={!bulkEditFields.imageObjectPosition} value={bulkEditValues.imageObjectPosition} onValueChange={v => setBulkEditValues(prev => ({ ...prev, imageObjectPosition: v }))}>
+                                <SelectTrigger className="h-12 rounded-xl">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="object-center">المنتصف (افتراضي)</SelectItem>
+                                  <SelectItem value="object-top">الأعلى</SelectItem>
+                                  <SelectItem value="object-bottom">الأسفل</SelectItem>
+                                  <SelectItem value="object-left">اليسار</SelectItem>
+                                  <SelectItem value="object-right">اليمين</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </section>
+
+                        {/* Section 2: Prepared Settings */}
+                        <section className="space-y-6">
+                          <div className="flex items-center gap-3 border-b border-slate-200 pb-2">
+                            <Checkbox checked={bulkEditFields.hasCutting || bulkEditFields.hasPackaging || bulkEditFields.hasExtras} onCheckedChange={(c) => {
+                              const val = !!c;
+                              setBulkEditFields(prev => ({ ...prev, hasCutting: val, hasPackaging: val, hasExtras: val }));
+                            }} />
+                            <h4 className="text-lg font-black text-slate-800">خيارات التجهيز للعملاء</h4>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pr-8">
+                            <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200">
+                              <Checkbox checked={bulkEditFields.hasCutting} onCheckedChange={(c) => setBulkEditFields(prev => ({ ...prev, hasCutting: !!c }))} />
+                              <div className="flex-1 flex justify-between items-center">
+                                <Label className="font-bold">تجهيز وتقطيع</Label>
+                                <Switch disabled={!bulkEditFields.hasCutting} checked={bulkEditValues.hasCutting} onCheckedChange={c => setBulkEditValues(prev => ({ ...prev, hasCutting: c }))} />
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200">
+                              <Checkbox checked={bulkEditFields.hasPackaging} onCheckedChange={(c) => setBulkEditFields(prev => ({ ...prev, hasPackaging: !!c }))} />
+                              <div className="flex-1 flex justify-between items-center">
+                                <Label className="font-bold">تغليف خاص</Label>
+                                <Switch disabled={!bulkEditFields.hasPackaging} checked={bulkEditValues.hasPackaging} onCheckedChange={c => setBulkEditValues(prev => ({ ...prev, hasPackaging: c }))} />
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200">
+                              <Checkbox checked={bulkEditFields.hasExtras} onCheckedChange={(c) => setBulkEditFields(prev => ({ ...prev, hasExtras: !!c }))} />
+                              <div className="flex-1 flex justify-between items-center">
+                                <Label className="font-bold">إضافات جانبية</Label>
+                                <Switch disabled={!bulkEditFields.hasExtras} checked={bulkEditValues.hasExtras} onCheckedChange={c => setBulkEditValues(prev => ({ ...prev, hasExtras: c }))} />
+                              </div>
+                            </div>
+                          </div>
+                        </section>
+
+                        {/* Section 3: Visibility */}
+                        <section className="space-y-6">
+                          <div className="flex items-center gap-3 border-b border-slate-200 pb-2">
+                            <Checkbox checked={bulkEditFields.isActive || bulkEditFields.isFeatured || bulkEditFields.isOutOfStock} onCheckedChange={(c) => {
+                              const val = !!c;
+                              setBulkEditFields(prev => ({ ...prev, isActive: val, isFeatured: val, isOutOfStock: val }));
+                            }} />
+                            <h4 className="text-lg font-black text-slate-800">إعدادات الظهور</h4>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pr-8">
+                            <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200">
+                              <Checkbox checked={bulkEditFields.isActive} onCheckedChange={(c) => setBulkEditFields(prev => ({ ...prev, isActive: !!c }))} />
+                              <div className="flex-1 flex justify-between items-center">
+                                <Label className="font-bold">تفعيل المنتج</Label>
+                                <Switch disabled={!bulkEditFields.isActive} checked={bulkEditValues.isActive} onCheckedChange={c => setBulkEditValues(prev => ({ ...prev, isActive: c }))} />
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200">
+                              <Checkbox checked={bulkEditFields.isFeatured} onCheckedChange={(c) => setBulkEditFields(prev => ({ ...prev, isFeatured: !!c }))} />
+                              <div className="flex-1 flex justify-between items-center">
+                                <Label className="font-bold">منتج مميز</Label>
+                                <Switch disabled={!bulkEditFields.isFeatured} checked={bulkEditValues.isFeatured} onCheckedChange={c => setBulkEditValues(prev => ({ ...prev, isFeatured: c }))} />
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200">
+                              <Checkbox checked={bulkEditFields.isOutOfStock} onCheckedChange={(c) => setBulkEditFields(prev => ({ ...prev, isOutOfStock: !!c }))} />
+                              <div className="flex-1 flex justify-between items-center">
+                                <Label className="font-bold text-rose-600">نفذت الكمية</Label>
+                                <Switch disabled={!bulkEditFields.isOutOfStock} checked={bulkEditValues.isOutOfStock} onCheckedChange={c => setBulkEditValues(prev => ({ ...prev, isOutOfStock: c }))} className="data-[state=checked]:bg-rose-500" />
+                              </div>
+                            </div>
+                          </div>
+                        </section>
+
+                        <div className="h-10" />
+                      </div>
+                    </ScrollArea>
+                  </div>
+
+                  <DialogFooter className="p-8 border-t bg-white shrink-0">
+                    <Button
+                      className="flex-1 h-14 rounded-2xl bg-slate-900 text-white text-xl font-black shadow-2xl hover:bg-slate-800 transition-all gap-3"
+                      onClick={() => bulkUpdateMutation.mutate()}
+                      disabled={bulkUpdateMutation.isPending}
+                    >
+                      {bulkUpdateMutation.isPending ? <Loader2 className="animate-spin" /> : <><Check className="w-6 h-6" /> حفظ التغييرات على {selectedProductIds.length} منتج</>}
+                    </Button>
+                    <Button variant="outline" className="h-14 px-10 rounded-2xl border-slate-200 font-bold" onClick={() => setIsBulkEditOpen(false)}>إلغاء</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           )}
 
