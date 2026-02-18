@@ -1809,7 +1809,7 @@ export default function AdminDashboard() {
                         منتج جديد <Plus className="w-4 h-4" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-[2.5rem] border-none shadow-2xl" dir="rtl">
+                    <DialogContent className="max-w-5xl md:h-[90vh] flex flex-col p-0 overflow-hidden rounded-[2.5rem] border-none shadow-2xl" dir="rtl">
                       <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-8 text-white relative overflow-hidden shrink-0">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                         <div className="relative z-10 flex items-center gap-4">
@@ -1823,8 +1823,8 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      <div className="flex-1 overflow-hidden bg-slate-50/50">
-                        <ScrollArea className="h-full">
+                      <div className="flex-1 min-h-0 bg-slate-50/50">
+                        <ScrollArea className="h-full w-full">
                           <div className="p-8">
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                               {/* Left Column: Media & Status */}
@@ -1891,7 +1891,7 @@ export default function AdminDashboard() {
                                         <Label htmlFor="isActive" className="text-sm font-black text-slate-700">تفعيل المنتج</Label>
                                         <p className="text-[10px] text-slate-400 font-medium">يظهر المنتج للعملاء في المتجر</p>
                                       </div>
-                                      <Switch id="isActive" checked={formData.isActive} onCheckedChange={(c) => setFormData({ ...formData, isActive: c })} />
+                                      <Switch id="isActive" checked={formData.isActive} onCheckedChange={(c) => setFormData(prev => ({ ...prev, isActive: c }))} />
                                     </div>
                                     <Separator className="bg-slate-50" />
                                     <div className="flex items-center justify-between group">
@@ -2013,22 +2013,22 @@ export default function AdminDashboard() {
                                     <h4 className="text-lg font-black tracking-tight">خيارات التجهيز للعملاء</h4>
                                   </div>
                                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className={`p-4 rounded-2xl border-2 transition-all cursor-pointer ${formData.hasCutting ? 'bg-primary/10 border-primary' : 'bg-white/5 border-white/10 hover:border-white/20'}`} onClick={() => setFormData({ ...formData, hasCutting: !formData.hasCutting })}>
-                                      <div className="flex justify-between items-start mb-3">
+                                    <div className={`p-4 rounded-2xl border-2 transition-all cursor-pointer ${formData.hasCutting ? 'bg-primary/10 border-primary' : 'bg-white/5 border-white/10 hover:border-white/20'}`} onClick={() => setFormData(prev => ({ ...prev, hasCutting: !prev.hasCutting }))}>
+                                      <div className="flex justify-between items-start mb-3 pointer-events-none">
                                         <Scissors className={formData.hasCutting ? 'text-primary' : 'text-slate-500'} />
                                         <Switch checked={formData.hasCutting} onCheckedChange={(c) => setFormData({ ...formData, hasCutting: c })} />
                                       </div>
                                       <p className="font-black text-sm">تجهيز وتقطيع</p>
                                     </div>
-                                    <div className={`p-4 rounded-2xl border-2 transition-all cursor-pointer ${formData.hasPackaging ? 'bg-orange-500/10 border-orange-500' : 'bg-white/5 border-white/10 hover:border-white/20'}`} onClick={() => setFormData({ ...formData, hasPackaging: !formData.hasPackaging })}>
-                                      <div className="flex justify-between items-start mb-3">
+                                    <div className={`p-4 rounded-2xl border-2 transition-all cursor-pointer ${formData.hasPackaging ? 'bg-orange-500/10 border-orange-500' : 'bg-white/5 border-white/10 hover:border-white/20'}`} onClick={() => setFormData(prev => ({ ...prev, hasPackaging: !prev.hasPackaging }))}>
+                                      <div className="flex justify-between items-start mb-3 pointer-events-none">
                                         <Box className={formData.hasPackaging ? 'text-orange-500' : 'text-slate-500'} />
                                         <Switch checked={formData.hasPackaging} onCheckedChange={(c) => setFormData({ ...formData, hasPackaging: c })} className="data-[state=checked]:bg-orange-500" />
                                       </div>
                                       <p className="font-black text-sm">تغليف خاص</p>
                                     </div>
-                                    <div className={`p-4 rounded-2xl border-2 transition-all cursor-pointer ${formData.hasExtras ? 'bg-purple-500/10 border-purple-500' : 'bg-white/5 border-white/10 hover:border-white/20'}`} onClick={() => setFormData({ ...formData, hasExtras: !formData.hasExtras })}>
-                                      <div className="flex justify-between items-start mb-3">
+                                    <div className={`p-4 rounded-2xl border-2 transition-all cursor-pointer ${formData.hasExtras ? 'bg-purple-500/10 border-purple-500' : 'bg-white/5 border-white/10 hover:border-white/20'}`} onClick={() => setFormData(prev => ({ ...prev, hasExtras: !prev.hasExtras }))}>
+                                      <div className="flex justify-between items-start mb-3 pointer-events-none">
                                         <UtensilsCrossed className={formData.hasExtras ? 'text-purple-500' : 'text-slate-500'} />
                                         <Switch checked={formData.hasExtras} onCheckedChange={(c) => setFormData({ ...formData, hasExtras: c })} className="data-[state=checked]:bg-purple-500" />
                                       </div>
@@ -2050,6 +2050,7 @@ export default function AdminDashboard() {
                                 className="min-h-[160px] rounded-[2rem] border-slate-200 bg-white p-6 font-medium text-lg shadow-sm resize-none focus:ring-primary"
                               />
                             </div>
+                            <div className="h-20" /> {/* Extra space at bottom of scroll */}
                           </div>
                         </ScrollArea>
                       </div>
