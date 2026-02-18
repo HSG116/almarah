@@ -301,7 +301,7 @@ export default function Auth() {
             animate={{ scale: 1, opacity: 1 }}
             className="w-40 h-40 flex items-center justify-center relative"
           >
-            <img src="/uploads/LOGO.png" alt="المراح" className="w-full h-full object-contain drop-shadow-2xl" />
+            <img src="/logo.png" alt="المراح" className="w-full h-full object-contain drop-shadow-2xl" />
           </motion.div>
           <div className="text-center">
             <h1 className="text-5xl font-black text-zinc-900 tracking-tighter">المراح</h1>
@@ -324,7 +324,7 @@ export default function Auth() {
             <div className="flex flex-row items-center justify-start gap-8 mb-10 w-full select-none">
               {/* Logo */}
               <div className="relative shrink-0">
-                <img src="/uploads/LOGO.png" alt="المراح" className="w-36 h-36 lg:w-44 lg:h-44 object-contain drop-shadow-2xl" />
+                <img src="/logo.png" alt="المراح" className="w-36 h-36 lg:w-44 lg:h-44 object-contain drop-shadow-2xl" />
               </div>
 
               {/* Title (Single Line - Forced) */}
@@ -613,7 +613,7 @@ export default function Auth() {
                       <div className="relative group mt-2">
                         <div className="w-32 h-32 rounded-3xl bg-white p-2 shadow-2xl border border-primary/10 overflow-hidden transform group-hover:rotate-3 transition-transform duration-500">
                           <img
-                            src={user?.avatarUrl || "/uploads/LOGO.png"}
+                            src={user?.avatarUrl || "/logo.png"}
                             alt="Profile"
                             className="w-full h-full object-cover rounded-2xl"
                           />

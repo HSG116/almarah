@@ -300,7 +300,7 @@ export default function Profile() {
                                       <div key={idx} className="flex gap-4 bg-white p-4 rounded-2xl shadow-sm border border-muted/10 group hover:border-primary/20 transition-colors">
                                         <div className="h-20 w-20 rounded-xl overflow-hidden bg-muted flex-shrink-0 shadow-sm">
                                           <img
-                                            src={item.product?.image || "/uploads/LOGO.png"}
+                                            src={item.product?.image || "/logo.png"}
                                             alt={item.productName}
                                             className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
                                           />

@@ -57,7 +57,7 @@ export function MobileHeader() {
                             whileTap={{ scale: 0.96 }}
                         >
                             <img
-                                src="/uploads/LOGO.png"
+                                src="/logo.png"
                                 alt="المراح"
                                 className="w-11 h-11 object-contain"
                             />

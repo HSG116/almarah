@@ -24,7 +24,7 @@ export function Navbar() {
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-4 cursor-pointer group">
             <img
-              src="/uploads/LOGO.png"
+              src="/logo.png"
               alt="المراح"
               className="w-20 h-20 md:w-28 md:h-28 object-contain transition-transform duration-300 group-hover:scale-110 drop-shadow-md"
             />

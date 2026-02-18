@@ -219,7 +219,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             <div className="space-y-6">
               <div className="flex items-center gap-3 mb-4">
-                <img src="/uploads/LOGO.png" alt="المراح" className="w-16 h-16 object-contain brightness-0 invert opacity-90" />
+                <img src="/logo.png" alt="المراح" className="w-16 h-16 object-contain brightness-0 invert opacity-90" />
                 <h2 className="text-3xl font-black text-primary tracking-tighter">المراح</h2>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed font-medium capitalize">

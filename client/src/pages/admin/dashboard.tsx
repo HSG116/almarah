@@ -1103,6 +1103,95 @@ export default function AdminDashboard() {
     });
   }, [staffList, orders, deliveryZones]);
 
+  // Calculate real weekly sales data
+  const weeklySalesData = useMemo(() => {
+    const dayNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    const result = [];
+
+    // We want the last 7 days leading up to today
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dayName = dayNames[d.getDay()];
+      const dateStr = d.toISOString().split('T')[0];
+
+      const dayTotal = orders
+        .filter(o => {
+          const orderDate = o.createdAt || o.created_at;
+          return orderDate && orderDate.startsWith(dateStr) && o.status !== 'cancelled';
+        })
+        .reduce((sum, o) => sum + (parseFloat(o.total as any) || 0), 0);
+
+      result.push({ name: dayName, value: dayTotal });
+    }
+    return result;
+  }, [orders]);
+
+  // Calculate real top selling products
+  const topSellingProducts = useMemo(() => {
+    const productSales: Record<number, number> = {};
+    orders.forEach(order => {
+      if (order.status === 'cancelled') return;
+      (order.order_items || []).forEach((item: any) => {
+        const pid = item.productId || item.product_id;
+        if (pid) {
+          productSales[pid] = (productSales[pid] || 0) + (item.quantity || 1);
+        }
+      });
+    });
+
+    const sorted = products
+      .map(p => ({
+        ...p,
+        salesCount: productSales[p.id] || 0
+      }))
+      .filter(p => p.salesCount > 0)
+      .sort((a, b) => b.salesCount - a.salesCount)
+      .slice(0, 6);
+
+    // If no sales yet, just show first 6 products as fallback
+    return sorted.length > 0 ? sorted : products.slice(0, 6).map(p => ({ ...p, salesCount: 0 }));
+  }, [products, orders]);
+
+  // Calculate real report trends
+  const reportTrends = useMemo(() => {
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+    const currentWeekOrders = orders.filter(o => {
+      const d = new Date(o.createdAt || o.created_at);
+      return d >= oneWeekAgo && o.status !== 'cancelled';
+    });
+
+    const previousWeekOrders = orders.filter(o => {
+      const d = new Date(o.createdAt || o.created_at);
+      return d >= twoWeeksAgo && d < oneWeekAgo && o.status !== 'cancelled';
+    });
+
+    const currentRevenue = currentWeekOrders.reduce((acc, o) => acc + (parseFloat(o.total as any) || 0), 0);
+    const previousRevenue = previousWeekOrders.reduce((acc, o) => acc + (parseFloat(o.total as any) || 0), 0);
+
+    let revenueTrend = 0;
+    if (previousRevenue > 0) {
+      revenueTrend = ((currentRevenue - previousRevenue) / previousRevenue) * 100;
+    } else if (currentRevenue > 0) {
+      revenueTrend = 100;
+    }
+
+    const currentUsers = usersList.filter(u => {
+      // Assuming ID structure or just showing total for now as we don't have createdAt for users in some schemas
+      return true;
+    }).length;
+
+    return {
+      revenueTrend: revenueTrend.toFixed(1),
+      avgDailyOrders: (currentWeekOrders.length / 7).toFixed(1),
+      currentWeekSales: currentRevenue.toLocaleString(),
+      newCustomersThisWeek: usersList.length // Fallback if no specific date
+    };
+  }, [orders, usersList]);
+
   // --- Helpers ---
   const resetProductForm = () => {
     setFormData({
@@ -1543,7 +1632,7 @@ export default function AdminDashboard() {
           <div className="p-10 border-b border-gray-50 flex flex-col items-center">
             <div className="relative mb-4 group cursor-pointer">
               <div className="absolute -inset-2 bg-primary/5 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-              <img src="/uploads/LOGO.png" alt="المراح" className="w-24 h-24 object-contain relative z-10 drop-shadow-md transition-transform group-hover:scale-110" />
+              <img src="/logo.png" alt="المراح" className="w-24 h-24 object-contain relative z-10 drop-shadow-md transition-transform group-hover:scale-110" />
             </div>
             <h2 className="text-3xl font-black text-slate-900 font-heading tracking-tighter">المراح</h2>
             <p className="text-[10px] font-black tracking-[0.2em] text-primary uppercase mt-1 bg-primary/5 px-4 py-1 rounded-full">Admin Portal</p>
@@ -4386,7 +4475,7 @@ export default function AdminDashboard() {
                     color: "text-blue-600",
                     bg: "bg-blue-50",
                     suffix: " ﷼",
-                    trend: "+12.5% من الشهر الماضي"
+                    trend: `${reportTrends.revenueTrend}% من الشهر الماضي`
                   },
                   {
                     label: "إجمالي الطلبات",
@@ -4395,7 +4484,7 @@ export default function AdminDashboard() {
                     color: "text-purple-600",
                     bg: "bg-purple-50",
                     suffix: " طلب",
-                    trend: "متوسط 5 طلبات يومياً"
+                    trend: `متوسط ${reportTrends.avgDailyOrders} طلبات يومياً`
                   },
                   {
                     label: "متوسط قيمة الطلب",
@@ -4404,7 +4493,7 @@ export default function AdminDashboard() {
                     color: "text-orange-600",
                     bg: "bg-orange-50",
                     suffix: " ﷼",
-                    trend: "نمو بنسبة 5%"
+                    trend: "بناءً على إجمالي المبيعات"
                   },
                   {
                     label: "قاعدة العملاء",
@@ -4413,7 +4502,7 @@ export default function AdminDashboard() {
                     color: "text-emerald-600",
                     bg: "bg-emerald-50",
                     suffix: " عميل",
-                    trend: "34 عميل جديد هذا الأسبوع"
+                    trend: `${reportTrends.newCustomersThisWeek} عميل نشط في النظام`
                   },
                 ].map((stat, i) => (
                   <Card key={i} className="border-none shadow-xl shadow-slate-100/50 hover:shadow-xl hover:scale-[1.02] transition-all p-7 bg-white relative overflow-hidden group">
@@ -4448,15 +4537,7 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <div className="h-[400px] w-full relative z-10">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={[
-                        { name: 'السبت', value: 4200 },
-                        { name: 'الأحد', value: 5100 },
-                        { name: 'الإثنين', value: 3800 },
-                        { name: 'الثلاثاء', value: 6200 },
-                        { name: 'الأربعاء', value: 4500 },
-                        { name: 'الخميس', value: 8900 },
-                        { name: 'الجمعة', value: 7100 },
-                      ]}>
+                      <AreaChart data={weeklySalesData}>
                         <defs>
                           <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
@@ -4485,7 +4566,7 @@ export default function AdminDashboard() {
                     <CardDescription className="text-slate-400 font-medium">المنتجات التي تحقق أعلى معدل دوران</CardDescription>
                   </CardHeader>
                   <div className="space-y-8">
-                    {products.slice(0, 6).map((prod, i) => (
+                    {topSellingProducts.map((prod: any, i) => (
                       <div key={prod.id} className="flex items-center gap-5 group cursor-pointer">
                         <div className="w-14 h-14 rounded-2xl bg-slate-50 overflow-hidden shrink-0 shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
                           <img src={prod.image} className="w-full h-full object-cover" />
@@ -4493,12 +4574,12 @@ export default function AdminDashboard() {
                         <div className="flex-1 space-y-2">
                           <div className="flex justify-between items-center">
                             <p className="text-sm font-black text-slate-800">{prod.name}</p>
-                            <span className="text-[10px] font-black text-indigo-600">{prod.price} ﷼</span>
+                            <span className="text-[10px] font-black text-indigo-600">{prod.salesCount} طلب</span>
                           </div>
                           <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full ${i === 0 ? 'bg-indigo-600' : 'bg-slate-300'} group-hover:bg-indigo-400 transition-colors`}
-                              style={{ width: `${95 - (i * 12)}%` }}
+                              style={{ width: `${prod.salesCount > 0 ? Math.max(10, (prod.salesCount / topSellingProducts[0].salesCount) * 100) : 0}%` }}
                             />
                           </div>
                         </div>
