@@ -55,6 +55,7 @@ import {
   Calendar,
   PenTool,
   Activity,
+  CheckSquare,
   User as UserIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -833,6 +834,7 @@ export default function AdminDashboard() {
 
   // --- Bulk Edit State ---
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
   const [bulkEditFields, setBulkEditFields] = useState({
     badge: false,
@@ -1808,18 +1810,28 @@ export default function AdminDashboard() {
                   </div>
                   {products.length > 0 && (
                     <Button
-                      variant="outline"
-                      size="sm"
-                      className="rounded-xl h-10 border-slate-200 text-slate-500 font-bold hover:bg-slate-50 px-4"
+                      variant={selectedProductIds.length === products.length ? "secondary" : "default"}
+                      className="gap-2 rounded-xl h-12 shadow-md shadow-primary/10"
                       onClick={() => {
-                        if (selectedProductIds.length === products.length) {
-                          setSelectedProductIds([]);
+                        const filteredProducts = selectedCategoryId
+                          ? products.filter(p => p.categoryId === selectedCategoryId)
+                          : products;
+
+                        if (selectedProductIds.length >= filteredProducts.length && filteredProducts.every(p => selectedProductIds.includes(p.id))) {
+                          // If all filtered are selected, deselect them
+                          const filteredIds = filteredProducts.map(p => p.id);
+                          setSelectedProductIds(prev => prev.filter(id => !filteredIds.includes(id)));
                         } else {
-                          setSelectedProductIds(products.map(p => p.id));
+                          // Select all filtered
+                          const filteredIds = filteredProducts.map(p => p.id);
+                          setSelectedProductIds(prev => Array.from(new Set([...prev, ...filteredIds])));
                         }
                       }}
                     >
-                      {selectedProductIds.length === products.length ? 'إلغاء تحديد الكل' : 'تحديد الكل'}
+                      <CheckSquare className="w-5 h-5" />
+                      {selectedProductIds.length > 0 && selectedProductIds.length === (selectedCategoryId ? products.filter(p => p.categoryId === selectedCategoryId).length : products.length)
+                        ? 'إلغاء تحديد الكل'
+                        : 'تحديد الكل'}
                     </Button>
                   )}
                 </div>
@@ -2160,104 +2172,113 @@ export default function AdminDashboard() {
               </div>
 
               <div className="flex flex-wrap gap-3 pb-10 overflow-x-auto no-scrollbar">
-                <div className="flex items-center gap-3 px-6 py-3 bg-slate-900 text-white rounded-2xl shadow-xl shadow-slate-200 font-black cursor-pointer hover:scale-105 transition-all">
+                <div
+                  onClick={() => setSelectedCategoryId(null)}
+                  className={`flex items-center gap-3 px-6 py-3 rounded-2xl shadow-sm font-black cursor-pointer transition-all ${!selectedCategoryId ? 'bg-slate-900 text-white shadow-xl shadow-slate-200 scale-105' : 'bg-white border border-slate-100 text-slate-700 hover:border-primary'}`}
+                >
                   <LayoutGrid className="w-5 h-5" /> الكل
                 </div>
                 {categories.map((cat: any) => (
-                  <div key={cat.id} className="flex items-center gap-3 px-6 py-3 bg-white border border-slate-100 rounded-2xl shadow-sm text-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary">
-                    <span className="text-xl group-hover:scale-125 transition-transform">{cat.icon}</span>
-                    <span className="font-black text-slate-700">{cat.name}</span>
+                  <div
+                    key={cat.id}
+                    onClick={() => setSelectedCategoryId(cat.id)}
+                    className={`flex items-center gap-3 px-6 py-3 rounded-2xl shadow-sm text-sm hover:shadow-md transition-all cursor-pointer group group hover:border-primary ${selectedCategoryId === cat.id ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'bg-white border border-slate-100 text-slate-700'}`}
+                  >
+                    <span className={`text-xl transition-transform ${selectedCategoryId === cat.id ? 'scale-125' : 'group-hover:scale-125'}`}>{cat.icon}</span>
+                    <span className="font-black">{cat.name}</span>
                   </div>
                 ))}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
-                {products.map((product) => (
-                  <Card key={product.id} className={`group relative overflow-hidden border-none shadow-2xl shadow-slate-200/50 rounded-[3rem] bg-white hover:-translate-y-3 transition-all duration-700 ${!product.isActive ? 'opacity-70 grayscale' : ''} ${selectedProductIds.includes(product.id) ? 'ring-4 ring-primary ring-offset-4' : ''}`}>
-                    <div className="relative h-72 overflow-hidden">
-                      <div className="absolute top-6 left-6 z-20">
-                        <Checkbox
-                          checked={selectedProductIds.includes(product.id)}
-                          onCheckedChange={(checked) => {
-                            setSelectedProductIds(prev =>
-                              checked
-                                ? [...prev, product.id]
-                                : prev.filter(id => id !== product.id)
-                            );
-                          }}
-                          className="w-10 h-10 rounded-2xl border-white/50 bg-black/20 backdrop-blur-md data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all shadow-xl shadow-black/20 border-2"
+                {products
+                  .filter(p => !selectedCategoryId || p.categoryId === selectedCategoryId)
+                  .map((product) => (
+                    <Card key={product.id} className={`group relative overflow-hidden border-none shadow-2xl shadow-slate-200/50 rounded-[3rem] bg-white hover:-translate-y-3 transition-all duration-700 ${!product.isActive ? 'opacity-70 grayscale' : ''} ${selectedProductIds.includes(product.id) ? 'ring-4 ring-primary ring-offset-4' : ''}`}>
+                      <div className="relative h-72 overflow-hidden">
+                        <div className="absolute top-6 left-6 z-20">
+                          <Checkbox
+                            checked={selectedProductIds.includes(product.id)}
+                            onCheckedChange={(checked) => {
+                              setSelectedProductIds(prev =>
+                                checked
+                                  ? [...prev, product.id]
+                                  : prev.filter(id => id !== product.id)
+                              );
+                            }}
+                            className="w-10 h-10 rounded-2xl border-white/50 bg-black/20 backdrop-blur-md data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all shadow-xl shadow-black/20 border-2"
+                          />
+                        </div>
+                        <img
+                          src={product.image || '/assets/product-placeholder.jpg'}
+                          className={`w-full h-full object-cover transform scale-105 group-hover:scale-110 transition-transform duration-1000 ${product.imageObjectPosition || 'object-center'}`}
                         />
-                      </div>
-                      <img
-                        src={product.image || '/assets/product-placeholder.jpg'}
-                        className={`w-full h-full object-cover transform scale-105 group-hover:scale-110 transition-transform duration-1000 ${product.imageObjectPosition || 'object-center'}`}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
 
-                      {/* Action Overlays */}
-                      <div className="absolute inset-0 flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-all duration-500 scale-90 group-hover:scale-100">
-                        <Button size="icon" className="w-14 h-14 rounded-3xl bg-white text-slate-900 hover:bg-slate-100 shadow-2xl" onClick={() => handleEditClick(product)}>
-                          <Edit className="w-6 h-6" />
-                        </Button>
-                        <Button size="icon" variant="destructive" className="w-14 h-14 rounded-3xl shadow-2xl" onClick={() => {
-                          if (confirm("هل أنت متأكد من حذف هذا المنتج؟")) deleteProductMutation.mutate(product.id)
-                        }}>
-                          <Trash2 className="w-6 h-6" />
-                        </Button>
-                      </div>
-
-                      {/* Status Badges */}
-                      <div className="absolute top-6 right-6 flex flex-col gap-2">
-                        {product.badge && (
-                          <Badge className="bg-amber-400 text-amber-950 border-none font-black px-4 py-1.5 rounded-xl shadow-lg animate-pulse">{product.badge}</Badge>
-                        )}
-                        {product.isFeatured && (
-                          <Badge className="bg-indigo-600 text-white border-none font-black px-4 py-1.5 rounded-xl shadow-lg">⭐ مميز</Badge>
-                        )}
-                      </div>
-
-                      {!product.isActive && (
-                        <div className="absolute top-6 left-6 bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20">
-                          <span className="text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2"><EyeOff className="w-3 h-3" /> مخفي عن العملاء</span>
+                        {/* Action Overlays */}
+                        <div className="absolute inset-0 flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-all duration-500 scale-90 group-hover:scale-100">
+                          <Button size="icon" className="w-14 h-14 rounded-3xl bg-white text-slate-900 hover:bg-slate-100 shadow-2xl" onClick={() => handleEditClick(product)}>
+                            <Edit className="w-6 h-6" />
+                          </Button>
+                          <Button size="icon" variant="destructive" className="w-14 h-14 rounded-3xl shadow-2xl" onClick={() => {
+                            if (confirm("هل أنت متأكد من حذف هذا المنتج؟")) deleteProductMutation.mutate(product.id)
+                          }}>
+                            <Trash2 className="w-6 h-6" />
+                          </Button>
                         </div>
-                      )}
 
-                      <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end">
-                        <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-[1.5rem] shadow-2xl">
-                          <p className="text-[10px] font-black text-indigo-300 uppercase mb-0.5">السعر</p>
-                          <p className="text-2xl font-black text-white">{product.price} <span className="text-xs font-bold text-white/70">﷼</span></p>
+                        {/* Status Badges */}
+                        <div className="absolute top-6 right-6 flex flex-col gap-2">
+                          {product.badge && (
+                            <Badge className="bg-amber-400 text-amber-950 border-none font-black px-4 py-1.5 rounded-xl shadow-lg animate-pulse">{product.badge}</Badge>
+                          )}
+                          {product.isFeatured && (
+                            <Badge className="bg-indigo-600 text-white border-none font-black px-4 py-1.5 rounded-xl shadow-lg">⭐ مميز</Badge>
+                          )}
                         </div>
-                      </div>
-                    </div>
 
-                    <CardContent className="p-8 space-y-4">
-                      <div className="flex justify-between items-start gap-4">
-                        <div>
-                          <h3 className="text-2xl font-black text-slate-900 mb-1 leading-tight group-hover:text-primary transition-colors">{product.name}</h3>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-slate-200" />
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{categories.find(c => c.id === product.categoryId)?.name || 'غير مصنف'}</span>
+                        {!product.isActive && (
+                          <div className="absolute top-6 left-6 bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20">
+                            <span className="text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2"><EyeOff className="w-3 h-3" /> مخفي عن العملاء</span>
+                          </div>
+                        )}
+
+                        <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end">
+                          <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-[1.5rem] shadow-2xl">
+                            <p className="text-[10px] font-black text-indigo-300 uppercase mb-0.5">السعر</p>
+                            <p className="text-2xl font-black text-white">{product.price} <span className="text-xs font-bold text-white/70">﷼</span></p>
                           </div>
                         </div>
-                        <Badge variant="outline" className="h-10 px-4 rounded-xl border-slate-100 bg-slate-50 font-black text-slate-500 whitespace-nowrap">{product.unit || 'حبة'}</Badge>
                       </div>
 
-                      <p className="text-slate-500 font-medium text-sm leading-relaxed line-clamp-2 h-10">{product.description || 'لا يوجد وصف متوفر لهذا المنتج المتميز.'}</p>
+                      <CardContent className="p-8 space-y-4">
+                        <div className="flex justify-between items-start gap-4">
+                          <div>
+                            <h3 className="text-2xl font-black text-slate-900 mb-1 leading-tight group-hover:text-primary transition-colors">{product.name}</h3>
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-slate-200" />
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{categories.find(c => c.id === product.categoryId)?.name || 'غير مصنف'}</span>
+                            </div>
+                          </div>
+                          <Badge variant="outline" className="h-10 px-4 rounded-xl border-slate-100 bg-slate-50 font-black text-slate-500 whitespace-nowrap">{product.unit || 'حبة'}</Badge>
+                        </div>
 
-                      <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
-                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${((product.stockQuantity || 0) || 0) > 5 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                          {((product.stockQuantity || 0) || 0) > 5 ? <Check className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
-                          <span className="text-[10px] font-black uppercase">المخزون: {((product.stockQuantity || 0) || 0) || 0}</span>
+                        <p className="text-slate-500 font-medium text-sm leading-relaxed line-clamp-2 h-10">{product.description || 'لا يوجد وصف متوفر لهذا المنتج المتميز.'}</p>
+
+                        <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
+                          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${((product.stockQuantity || 0) || 0) > 5 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                            {((product.stockQuantity || 0) || 0) > 5 ? <Check className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
+                            <span className="text-[10px] font-black uppercase">المخزون: {((product.stockQuantity || 0) || 0) || 0}</span>
+                          </div>
+                          <div className="flex -space-x-2">
+                            <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-black">SA</div>
+                            <div className="w-8 h-8 rounded-full border-2 border-white bg-indigo-50 flex items-center justify-center text-[10px] font-black text-indigo-600">ME</div>
+                            <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-900 flex items-center justify-center text-[8px] font-black text-white">+20</div>
+                          </div>
                         </div>
-                        <div className="flex -space-x-2">
-                          <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-black">SA</div>
-                          <div className="w-8 h-8 rounded-full border-2 border-white bg-indigo-50 flex items-center justify-center text-[10px] font-black text-indigo-600">ME</div>
-                          <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-900 flex items-center justify-center text-[8px] font-black text-white">+20</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))}
               </div>
 
               {/* Floating Action Bar for Bulk Selection */}
@@ -2295,6 +2316,30 @@ export default function AdminDashboard() {
                         <DialogDescription className="text-slate-400 font-medium">اختر الحقول التي ترغب بتغييرها لجميع المنتجات المحددة</DialogDescription>
                       </div>
                     </div>
+                    <Button
+                      variant="outline"
+                      className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl"
+                      onClick={() => {
+                        const allFields = {
+                          badge: true, unit: true, imageObjectPosition: true,
+                          isActive: true, isFeatured: true, isOutOfStock: true,
+                          hasCutting: true, hasPackaging: true, hasExtras: true
+                        };
+                        const anyFalse = Object.values(bulkEditFields).some(v => !v);
+                        if (anyFalse) {
+                          setBulkEditFields(allFields);
+                        } else {
+                          setBulkEditFields({
+                            badge: false, unit: false, imageObjectPosition: false,
+                            isActive: false, isFeatured: false, isOutOfStock: false,
+                            hasCutting: false, hasPackaging: false, hasExtras: false
+                          });
+                        }
+                      }}
+                    >
+                      <CheckSquare className="w-4 h-4 mr-2" />
+                      {Object.values(bulkEditFields).every(v => v) ? 'إلغاء تحديد كافة الحقول' : 'تحديد كافة الحقول'}
+                    </Button>
                   </div>
 
                   <div className="flex-1 min-h-0 overflow-hidden bg-slate-50/50">
