@@ -132,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         username: userData.username,
                         phone: userData.phone,
                     },
-                    emailRedirectTo: window.location.origin,
+                    emailRedirectTo: "https://almarah.vercel.app/",
                 }
             });
 
@@ -223,7 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.origin,
+                    redirectTo: "https://almarah.vercel.app/",
                 }
             });
             if (error) throw error;
