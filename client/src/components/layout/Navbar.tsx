@@ -11,10 +11,12 @@ export function Navbar() {
   const { user } = useAuth();
   const { items } = useCart();
 
-  const isStaff = user && user.role && user.role !== "customer";
+  const isStaff = user && (user.isAdmin || (user.role && user.role !== "customer"));
   const staffHref = isStaff && user
-    ? (user.role === "admin" ? "/admin" : `/${user.role}`)
+    ? (user.role === "admin" || user.isAdmin ? "/admin" : `/${user.role}`)
     : null;
+
+  const profileHref = staffHref || "/profile";
 
   return (
     <nav className="hidden md:block sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -89,7 +91,7 @@ export function Navbar() {
           </Link>
 
           {user ? (
-            <Link href="/profile">
+            <Link href={profileHref}>
               <Button variant="outline" className="rounded-full px-6 font-bold shadow-sm hover:shadow-md transition-all cursor-pointer border-primary text-primary">
                 <User className="ml-2 h-4 w-4" />
                 {user.username}

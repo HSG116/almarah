@@ -140,6 +140,12 @@ export default function Profile() {
   useEffect(() => {
     if (!user) {
       setLocation("/auth");
+    } else {
+      const isStaff = user.isAdmin || (user.role && user.role !== "customer");
+      if (isStaff) {
+        const staffHref = (user.role === "admin" || user.isAdmin ? "/admin" : `/${user.role}`);
+        setLocation(staffHref);
+      }
     }
   }, [user, setLocation]);
 

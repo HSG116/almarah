@@ -28,9 +28,13 @@ export function BottomNav() {
     setLastScrollY(latest);
   });
 
-  const isStaff = user && user.role && user.role !== "customer";
-  const staffLink = isStaff && user
-    ? { href: user.role === "admin" ? "/admin" : `/${user.role}`, icon: ShieldCheck, label: "محطتي", badge: 0 }
+  const isStaff = user && (user.isAdmin || (user.role && user.role !== "customer"));
+  const staffHref = isStaff && user
+    ? (user.role === "admin" || user.isAdmin ? "/admin" : `/${user.role}`)
+    : null;
+
+  const staffLink = staffHref
+    ? { href: staffHref, icon: ShieldCheck, label: "محطتي", badge: 0 }
     : null;
 
   const navItems = [
@@ -38,7 +42,7 @@ export function BottomNav() {
     { href: "/products", icon: ShoppingBag, label: "المنتجات", badge: 0 },
     ...(staffLink ? [staffLink] : []),
     { href: "/cart", icon: ShoppingCart, label: "السلة", badge: items.length },
-    { href: "/profile", icon: User, label: "حسابي", badge: 0 },
+    { href: staffHref || "/profile", icon: User, label: "حسابي", badge: 0 },
   ];
 
   return (
