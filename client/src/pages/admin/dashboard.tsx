@@ -2296,6 +2296,40 @@ export default function AdminDashboard() {
                     <Button className="h-14 px-8 rounded-2xl bg-white text-slate-900 hover:bg-slate-100 font-black text-lg gap-3 shadow-xl" onClick={() => setIsBulkEditOpen(true)}>
                       <Edit className="w-6 h-6" /> تعديل جماعي
                     </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="h-14 px-5 rounded-2xl border-white/20 bg-white/5 hover:bg-rose-500/20 text-white font-bold gap-3"
+                        onClick={async () => {
+                          if (confirm(`هل أنت متأكد من إخفاء ${selectedProductIds.length} منتج؟`)) {
+                            const { error } = await supabase.from('products').update({ is_active: false }).in('id', selectedProductIds);
+                            if (error) toast({ title: "فشل الإخفاء", description: error.message, variant: "destructive" });
+                            else {
+                              queryClient.invalidateQueries({ queryKey: ["products"] });
+                              toast({ title: "تم إخفاء المنتجات بنجاح" });
+                              setSelectedProductIds([]);
+                            }
+                          }
+                        }}
+                      >
+                        <EyeOff className="w-5 h-5" /> إخفاء
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-14 px-5 rounded-2xl border-white/20 bg-white/5 hover:bg-emerald-500/20 text-white font-bold gap-3"
+                        onClick={async () => {
+                          const { error } = await supabase.from('products').update({ is_active: true }).in('id', selectedProductIds);
+                          if (error) toast({ title: "فشل التفعيل", description: error.message, variant: "destructive" });
+                          else {
+                            queryClient.invalidateQueries({ queryKey: ["products"] });
+                            toast({ title: "تم تفعيل المنتجات بنجاح" });
+                            setSelectedProductIds([]);
+                          }
+                        }}
+                      >
+                        <Eye className="w-5 h-5" /> إظهار
+                      </Button>
+                    </div>
                     <Button variant="ghost" className="h-14 px-6 rounded-2xl text-rose-400 hover:text-rose-300 hover:bg-white/5 font-bold gap-3" onClick={() => setSelectedProductIds([])}>
                       <X className="w-5 h-5" /> إلغاء
                     </Button>
@@ -2467,8 +2501,17 @@ export default function AdminDashboard() {
                             <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200">
                               <Checkbox checked={bulkEditFields.isActive} onCheckedChange={(c) => setBulkEditFields(prev => ({ ...prev, isActive: !!c }))} />
                               <div className="flex-1 flex justify-between items-center">
-                                <Label className="font-bold">تفعيل المنتج</Label>
-                                <Switch disabled={!bulkEditFields.isActive} checked={bulkEditValues.isActive} onCheckedChange={c => setBulkEditValues(prev => ({ ...prev, isActive: c }))} />
+                                <div className="flex flex-col">
+                                  <Label className="font-bold">ظهور المنتجات</Label>
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase transition-colors">
+                                    {bulkEditValues.isActive ? "ستكون مرئية للعملاء" : "سيتم إخفاؤها تماماً"}
+                                  </span>
+                                </div>
+                                <Switch
+                                  disabled={!bulkEditFields.isActive}
+                                  checked={bulkEditValues.isActive}
+                                  onCheckedChange={c => setBulkEditValues(prev => ({ ...prev, isActive: c }))}
+                                />
                               </div>
                             </div>
                             <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200">
